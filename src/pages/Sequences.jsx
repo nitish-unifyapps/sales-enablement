@@ -453,29 +453,103 @@ export default function Sequences() {
       {/* EDIT STEP MODAL */}
       {editingStep && (
         <div className="modal-backdrop" onClick={() => setEditingStep(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 620 }}>
             <h3>Edit Step</h3>
             <div className="form-group">
               <label>Step Type</label>
               <select value={editingStep.type} onChange={e => setEditingStep({ ...editingStep, type: e.target.value })}>
-                {stepTypes.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
+                {stepTypes.map(t => <option key={t.type} value={t.type}>{t.label} ({t.cat})</option>)}
               </select>
             </div>
             <div className="form-group">
               <label>Title</label>
-              <input value={editingStep.title} onChange={e => setEditingStep({ ...editingStep, title: e.target.value })} />
+              <input value={editingStep.title} onChange={e => setEditingStep({ ...editingStep, title: e.target.value })} placeholder="e.g. Intro Email, Follow-up Call" />
             </div>
             <div className="form-group">
-              <label>Description / Content</label>
-              <textarea value={editingStep.desc} onChange={e => setEditingStep({ ...editingStep, desc: e.target.value })} placeholder="Step instructions, message content..." />
+              <label>Description / Content / Instructions</label>
+              <textarea value={editingStep.desc} onChange={e => setEditingStep({ ...editingStep, desc: e.target.value })} placeholder="What should happen in this step? Message content, call script, or instructions for the rep..." style={{ minHeight: 100 }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="form-group">
+                <label>Day (in sequence)</label>
+                <input type="number" min="1" value={editingStep.day} onChange={e => setEditingStep({ ...editingStep, day: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div className="form-group">
+                <label>Delay after previous (min)</label>
+                <input type="number" min="0" value={editingStep.delay || 0} onChange={e => setEditingStep({ ...editingStep, delay: parseInt(e.target.value) || 0 })} />
+              </div>
+              <div className="form-group">
+                <label>Priority</label>
+                <select value={editingStep.priority || 'normal'} onChange={e => setEditingStep({ ...editingStep, priority: e.target.value })}>
+                  <option value="normal">Normal</option>
+                  <option value="high">High — send first</option>
+                  <option value="low">Low — send last</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group">
+                <label>Send Window</label>
+                <select value={editingStep.sendWindow || '8am-6pm'} onChange={e => setEditingStep({ ...editingStep, sendWindow: e.target.value })}>
+                  <option value="8am-6pm">8:00 AM — 6:00 PM</option>
+                  <option value="9am-5pm">9:00 AM — 5:00 PM</option>
+                  <option value="9am-12pm">Morning only (9 AM — 12 PM)</option>
+                  <option value="anytime">Any time</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Timezone</label>
+                <select value={editingStep.timezone || 'prospect'} onChange={e => setEditingStep({ ...editingStep, timezone: e.target.value })}>
+                  <option value="prospect">Prospect's timezone</option>
+                  <option value="sender">Sender's timezone</option>
+                </select>
+              </div>
             </div>
             <div className="form-group">
-              <label>Day</label>
-              <input type="number" min="1" value={editingStep.day} onChange={e => setEditingStep({ ...editingStep, day: parseInt(e.target.value) || 1 })} />
+              <label>Condition (when should this step execute?)</label>
+              <select value={editingStep.condition || 'always'} onChange={e => setEditingStep({ ...editingStep, condition: e.target.value })}>
+                <option value="always">Always — execute regardless</option>
+                <option value="if_no_reply">Only if no reply to previous email</option>
+                <option value="if_no_open">Only if previous email not opened</option>
+                <option value="if_opened">Only if previous email was opened</option>
+                <option value="if_clicked">Only if link was clicked</option>
+                <option value="if_connected">Only if LinkedIn connected</option>
+                <option value="if_not_connected">Only if LinkedIn NOT connected</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Template (link a template to this step)</label>
+              <input value={editingStep.template || ''} onChange={e => setEditingStep({ ...editingStep, template: e.target.value })} placeholder="Template name or leave blank" />
+            </div>
+            <div className="form-group">
+              <label>A/B Variant (optional — alternative content for split testing)</label>
+              <textarea value={editingStep.abVariant || ''} onChange={e => setEditingStep({ ...editingStep, abVariant: e.target.value })} placeholder="Alternative message content for B variant..." style={{ minHeight: 60 }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group">
+                <label>Max Retries (if fails)</label>
+                <select value={editingStep.retries || '0'} onChange={e => setEditingStep({ ...editingStep, retries: e.target.value })}>
+                  <option value="0">No retry</option>
+                  <option value="1">1 retry</option>
+                  <option value="2">2 retries</option>
+                  <option value="3">3 retries</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>On Failure</label>
+                <select value={editingStep.onFailure || 'skip'} onChange={e => setEditingStep({ ...editingStep, onFailure: e.target.value })}>
+                  <option value="skip">Skip and continue</option>
+                  <option value="pause">Pause sequence</option>
+                  <option value="retry_next_day">Retry next day</option>
+                  <option value="notify">Notify owner</option>
+                </select>
+              </div>
             </div>
             <div className="modal-actions">
+              <button className="btn btn-danger" onClick={() => { deleteStep(editingStep.id); setEditingStep(null) }}>Delete Step</button>
+              <div style={{ flex: 1 }} />
               <button className="btn" onClick={() => setEditingStep(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { setSteps(steps.map(s => s.id === editingStep.id ? editingStep : s)); setEditingStep(null) }}>Save</button>
+              <button className="btn btn-primary" onClick={() => { setSteps(steps.map(s => s.id === editingStep.id ? editingStep : s)); setEditingStep(null) }}>Save Changes</button>
             </div>
           </div>
         </div>
