@@ -6,22 +6,16 @@ const stepTypes = [
   { type: 'phone', label: 'Phone Call', cat: 'manual' },
   { type: 'linkedin_connect', label: 'LinkedIn Connect', cat: 'auto' },
   { type: 'linkedin_msg', label: 'LinkedIn Message', cat: 'auto' },
-  { type: 'linkedin_inmail', label: 'LinkedIn InMail', cat: 'auto' },
   { type: 'task', label: 'Generic Task', cat: 'manual' },
   { type: 'ai_branch', label: 'AI Branch', cat: 'auto' },
 ]
 
 const initialSequences = [
-  { id: 1, name: 'FY26 Enterprise Outbound — VP Sales', steps: 10, days: 14, type: 'interval', tags: ['create&close', 'enterprise'], active: true, score: 74, prospects: { active: 248, paused: 12, failed: 2, bounced: 18 }, contacted: 1420, opened: 77, clicked: 6, replied: 28, owner: 'SK', lastRun: '12 min ago' },
-  { id: 2, name: 'Inbound Demo Request (All Segments)', steps: 14, days: 21, type: 'interval', tags: ['inbound', 'new logo'], active: true, score: 92, prospects: { active: 154, paused: 1, failed: 4, bounced: 31 }, contacted: 1479, opened: 88, clicked: 0, replied: 62, owner: 'MT', lastRun: '12 min ago' },
-  { id: 3, name: 'PROS | C+C Manual Round1 (All Segments | NAM)', steps: 17, days: 28, type: 'interval', tags: ['create&close', 'public'], active: true, score: 26, prospects: { active: 485, paused: 256, failed: 5, bounced: 2485 }, contacted: 27125, opened: 52, clicked: 0, replied: 22, owner: 'JP', lastRun: '1 hour ago' },
-  { id: 4, name: 'PROS | Pick up the Convo (NAM)', steps: 14, days: 18, type: 'interval', tags: ['PUC', 'EMEA'], active: true, score: 60, prospects: { active: 502, paused: 150, failed: 8, bounced: 414 }, contacted: 10470, opened: 58, clicked: 0, replied: 31, owner: 'JP', lastRun: '22 min ago' },
-  { id: 5, name: 'C+C Personalized Round1 (Sales ATL | NAM)', steps: 17, days: 28, type: 'interval', tags: ['create&close', 'public'], active: true, score: 44, prospects: { active: 425, paused: 124, failed: 19, bounced: 846 }, contacted: 10858, opened: 53, clicked: 0, replied: 24, owner: 'JP', lastRun: '1 hour ago' },
-  { id: 6, name: 'UK — Automated Reply FUP', steps: 6, days: 8, type: 'interval', tags: ['EMEA', 'reply FUPs'], active: true, score: 79, prospects: { active: 2, paused: 0, failed: 2, bounced: 3 }, contacted: 222, opened: 65, clicked: 0, replied: 90, owner: 'SK', lastRun: '18 min ago' },
-  { id: 7, name: 'Inbound Demo Request (Global)', steps: 14, days: 21, type: 'interval', tags: ['inbound', 'new logo'], active: true, score: 89, prospects: { active: 278, paused: 14, failed: 6, bounced: 117 }, contacted: 2514, opened: 77, clicked: 0, replied: 54, owner: 'MT', lastRun: '37 min ago' },
-  { id: 8, name: 'Re-engagement — Lost Deals Q2', steps: 5, days: 21, type: 'interval', tags: ['nurture'], active: false, score: 34, prospects: { active: 0, paused: 86, failed: 3, bounced: 12 }, contacted: 640, opened: 42, clicked: 2, replied: 8, owner: 'SK', lastRun: '3 days ago' },
-  { id: 9, name: 'Event Follow-up — SaaStr 2026', steps: 7, days: 10, type: 'interval', tags: ['event', 'inbound'], active: true, score: 81, prospects: { active: 320, paused: 8, failed: 1, bounced: 22 }, contacted: 1890, opened: 71, clicked: 4, replied: 38, owner: 'MT', lastRun: '45 min ago' },
-  { id: 10, name: 'APAC Cold Outbound — Mid-Market', steps: 12, days: 16, type: 'interval', tags: ['APAC', 'cold'], active: true, score: 52, prospects: { active: 190, paused: 45, failed: 6, bounced: 88 }, contacted: 4200, opened: 48, clicked: 1, replied: 15, owner: 'JP', lastRun: '2 hours ago' },
+  { id: 1, name: 'FY26 Enterprise Outbound — VP Sales', steps: 10, days: 14, tags: ['enterprise'], active: true, score: 74, prospects: { active: 248, paused: 12 }, contacted: 1420, opened: 77, replied: 28, owner: 'SK', lastRun: '12 min ago' },
+  { id: 2, name: 'Inbound Demo Request (All Segments)', steps: 14, days: 21, tags: ['inbound'], active: true, score: 92, prospects: { active: 154, paused: 1 }, contacted: 1479, opened: 88, replied: 62, owner: 'MT', lastRun: '12 min ago' },
+  { id: 3, name: 'PROS | C+C Manual Round1 (NAM)', steps: 17, days: 28, tags: ['create&close'], active: true, score: 26, prospects: { active: 485, paused: 256 }, contacted: 27125, opened: 52, replied: 22, owner: 'JP', lastRun: '1 hour ago' },
+  { id: 4, name: 'Event Follow-up — SaaStr 2026', steps: 7, days: 10, tags: ['event'], active: true, score: 81, prospects: { active: 320, paused: 8 }, contacted: 1890, opened: 71, replied: 38, owner: 'MT', lastRun: '45 min ago' },
+  { id: 5, name: 'Re-engagement — Lost Deals Q2', steps: 5, days: 21, tags: ['nurture'], active: false, score: 34, prospects: { active: 0, paused: 86 }, contacted: 640, opened: 42, replied: 8, owner: 'SK', lastRun: '3 days ago' },
 ]
 
 const initialSteps = [
@@ -34,18 +28,6 @@ const initialSteps = [
   { id: 7, type: 'auto_email', title: 'Case Study Email', desc: 'Send relevant case study', day: 8 },
   { id: 8, type: 'phone', title: 'Call #2 + Voicemail', desc: 'Mention LinkedIn, drop voicemail', day: 10 },
   { id: 9, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — create urgency', day: 12 },
-  { id: 10, type: 'task', title: 'Review & Disposition', desc: 'Mark lost / nurture / escalate', day: 14 },
-]
-
-const initialProspects = [
-  { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP Sales', email: 'sarah@acme.com', state: 'active', currentStep: 3, lastContacted: '2 hours ago', opened: true, clicked: true, replied: false, sequenceId: 1, owner: 'You' },
-  { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', email: 'james@beta.io', state: 'active', currentStep: 5, lastContacted: 'Yesterday', opened: true, clicked: false, replied: false, sequenceId: 1, owner: 'You' },
-  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director Ops', email: 'mike@delta.co', state: 'finished_replied', currentStep: 2, lastContacted: '3 days ago', opened: true, clicked: true, replied: true, sequenceId: 2, owner: 'You' },
-  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', email: 'lisa@omega.com', state: 'paused', currentStep: 4, lastContacted: '5 days ago', opened: true, clicked: false, replied: false, sequenceId: 1, owner: 'You' },
-  { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', email: 'tom@zeta.io', state: 'active', currentStep: 1, lastContacted: 'Today', opened: false, clicked: false, replied: false, sequenceId: 3, owner: 'Mike T.' },
-  { id: 6, name: 'Anna Lee', company: 'Sigma HR', title: 'VP Eng', email: 'anna@sigma.com', state: 'bounced', currentStep: 1, lastContacted: 'Jun 16', opened: false, clicked: false, replied: false, sequenceId: 4, owner: 'You' },
-  { id: 7, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', email: 'ben@alpha.co', state: 'active', currentStep: 7, lastContacted: '1 day ago', opened: true, clicked: true, replied: false, sequenceId: 2, owner: 'Mike T.' },
-  { id: 8, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Dir Sales', email: 'raj@lambda.io', state: 'active', currentStep: 6, lastContacted: 'Today', opened: true, clicked: true, replied: false, sequenceId: 3, owner: 'You' },
 ]
 
 const initialRules = [
@@ -56,92 +38,185 @@ const initialRules = [
   { id: 5, trigger: 'LinkedIn accepted', action: 'Skip to LinkedIn message', enabled: true },
 ]
 
-const conversationStarters = [
-  'Add a LinkedIn step after day 3',
-  'Make this sequence more aggressive — shorten delays',
-  'Add an AI branch after the first email',
-  'Generate a 7-step cold outbound sequence for CTOs',
-  'Add a breakup email at the end',
-  'Change all delays to 2 days',
-  'Add a phone call on day 5',
-  'Insert an objection-handling email after step 4',
+const initialProspects = [
+  { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP Sales', state: 'active', currentStep: 3, replied: false, sequenceId: 1 },
+  { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', state: 'active', currentStep: 5, replied: false, sequenceId: 1 },
+  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director Ops', state: 'finished_replied', currentStep: 2, replied: true, sequenceId: 2 },
+  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', state: 'paused', currentStep: 4, replied: false, sequenceId: 1 },
+  { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', state: 'active', currentStep: 1, replied: false, sequenceId: 3 },
+  { id: 6, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', state: 'active', currentStep: 7, replied: false, sequenceId: 2 },
+  { id: 7, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Dir Sales', state: 'active', currentStep: 6, replied: false, sequenceId: 3 },
 ]
+
+const copilotContexts = {
+  steps: {
+    greeting: "I'm ready to help build your sequence steps. I can add, remove, or modify steps. What would you like to do?",
+    starters: ['Add an automated email on day 1', 'Add a LinkedIn step after day 3', 'Generate a complete 7-step sequence', 'Make the sequence more aggressive', 'Add an AI branch after step 2', 'Remove the last step']
+  },
+  rules: {
+    greeting: "Let's configure automation rules. I can add triggers and actions that fire automatically based on prospect behavior.",
+    starters: ['Add a rule: pause on reply', 'Add a rule: if email opened 3x, create call task', 'Add a rule: if no engagement after 7 days, move to nurture', 'Disable all rules', 'Show me best practice rules for cold outbound']
+  },
+  prospects: {
+    greeting: "I can help manage prospects in this sequence. I can add prospects, remove inactive ones, or suggest which prospects need attention.",
+    starters: ['Add a new prospect to this sequence', 'Remove all bounced prospects', 'Which prospects are stuck?', 'Show me prospects who haven\'t been contacted in 7 days']
+  },
+  settings: {
+    greeting: "I can help configure sequence settings — send windows, throttles, timezone handling, and automation behavior.",
+    starters: ['Set send window to 9am-5pm', 'Limit to 100 emails per day', 'Enable pause on out-of-office', 'Change to prospect timezone sending']
+  },
+  create: {
+    greeting: "Let's create a new sequence! I'll guide you through it. First, what type of sequence are you building?\n\n1. Cold outbound prospecting\n2. Inbound follow-up\n3. Re-engagement / Nurture\n4. Event follow-up\n\nOr just describe your goal and I'll build it for you.",
+    starters: ['Create a cold outbound sequence for CTOs', 'Build an inbound demo follow-up', 'I need a re-engagement sequence for lost deals', 'Create a post-event follow-up for conference attendees']
+  }
+}
 
 
 export default function Sequences() {
   const [view, setView] = useState('list')
   const [listTab, setListTab] = useState('sequences')
-  const [sequences] = useState(initialSequences)
+  const [sequences, setSequences] = useState(initialSequences)
   const [steps, setSteps] = useState(initialSteps)
   const [rules, setRules] = useState(initialRules)
   const [prospects, setProspects] = useState(initialProspects)
   const [selectedSeq, setSelectedSeq] = useState(null)
   const [builderTab, setBuilderTab] = useState('steps')
-  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'Hi! I\'m your sequence copilot. I can help you build, edit, and optimize your outreach sequence. Try asking me to add steps, change timing, or generate a new sequence.' }])
+  const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
+  const [pendingStep, setPendingStep] = useState(null) // for multi-turn step creation
   const chatEndRef = useRef(null)
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
-  const openSequence = (seq) => { setSelectedSeq(seq); setView('builder') }
+  // Reset copilot when tab changes
+  useEffect(() => {
+    const ctx = copilotContexts[builderTab] || copilotContexts.steps
+    setChatMessages([{ role: 'ai', text: ctx.greeting }])
+    setPendingStep(null)
+  }, [builderTab])
+
+  const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('steps') }
+  const openCreate = () => { setView('builder'); setSelectedSeq(null); setBuilderTab('steps'); setSteps([]); setChatMessages([{ role: 'ai', text: copilotContexts.create.greeting }]) }
   const backToList = () => { setSelectedSeq(null); setView('list') }
 
-  // Simulated AI responses that actually modify steps
   const handleChat = () => {
     if (!chatInput.trim()) return
-    const userMsg = chatInput.trim()
-    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }])
+    const msg = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }])
     setChatInput('')
+    const lower = msg.toLowerCase()
 
     setTimeout(() => {
-      let aiResponse = ''
-      const lower = userMsg.toLowerCase()
+      let reply = ''
 
-      if (lower.includes('add') && lower.includes('linkedin')) {
-        const day = steps.length > 0 ? steps[steps.length - 1].day + 1 : 1
-        setSteps(prev => [...prev, { id: Date.now(), type: 'linkedin_msg', title: 'LinkedIn Message', desc: 'AI-generated: Personalized LinkedIn outreach', day }])
-        aiResponse = `Done! I've added a LinkedIn Message step on Day ${day}. You can edit it manually or tell me to adjust the timing.`
-      } else if (lower.includes('add') && lower.includes('call') || lower.includes('phone')) {
-        const day = parseInt(lower.match(/day (\d+)/)?.[1]) || (steps.length > 0 ? steps[steps.length - 1].day + 2 : 5)
-        setSteps(prev => [...prev, { id: Date.now(), type: 'phone', title: 'Phone Call', desc: 'AI-generated: Discovery call with personalized talk track', day }])
-        aiResponse = `Added a Phone Call step on Day ${day}. I've set it up with a discovery call script.`
-      } else if (lower.includes('add') && lower.includes('email')) {
-        const day = parseInt(lower.match(/day (\d+)/)?.[1]) || (steps.length > 0 ? steps[steps.length - 1].day + 2 : 1)
-        setSteps(prev => [...prev, { id: Date.now(), type: 'auto_email', title: 'Follow-up Email', desc: 'AI-generated: Personalized follow-up based on engagement signals', day }])
-        aiResponse = `Added an Automated Email on Day ${day}. It'll use personalization based on engagement signals.`
-      } else if (lower.includes('add') && lower.includes('ai branch')) {
-        const day = parseInt(lower.match(/day (\d+)/)?.[1]) || (steps.length > 0 ? Math.ceil(steps[steps.length - 1].day / 2) + 1 : 3)
-        setSteps(prev => [...prev, { id: Date.now(), type: 'ai_branch', title: 'AI: Decision Point', desc: 'AI analyzes engagement: route to meeting, objection handler, or continue', day }])
-        aiResponse = `Added an AI Branch on Day ${day}. It'll analyze prospect engagement and route accordingly.`
-      } else if (lower.includes('shorten') || lower.includes('aggressive')) {
-        setSteps(prev => prev.map((s, i) => ({ ...s, day: Math.max(1, Math.ceil(s.day * 0.6)) })))
-        aiResponse = 'Done! I\'ve compressed all delays by ~40%. The sequence is now more aggressive with shorter intervals between touches.'
-      } else if (lower.includes('remove') && lower.includes('last')) {
-        setSteps(prev => prev.slice(0, -1))
-        aiResponse = 'Removed the last step from the sequence.'
-      } else if (lower.includes('breakup') || lower.includes('break up')) {
-        const day = steps.length > 0 ? steps[steps.length - 1].day + 3 : 14
-        setSteps(prev => [...prev, { id: Date.now(), type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — closing the loop with urgency', day }])
-        aiResponse = `Added a Breakup Email on Day ${day} — the final touch before closing out the sequence.`
-      } else if (lower.includes('generate') || lower.includes('create') && lower.includes('sequence')) {
-        setSteps([
-          { id: Date.now(), type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro based on trigger event', day: 1 },
-          { id: Date.now() + 1, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with personalized note', day: 1 },
-          { id: Date.now() + 2, type: 'auto_email', title: 'Follow-up Email', desc: 'Value-add content, reference intro', day: 3 },
-          { id: Date.now() + 3, type: 'phone', title: 'Phone Call', desc: 'Discovery call attempt', day: 4 },
-          { id: Date.now() + 4, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Casual message referencing email', day: 5 },
-          { id: Date.now() + 5, type: 'auto_email', title: 'Case Study', desc: 'Relevant social proof', day: 7 },
-          { id: Date.now() + 6, type: 'auto_email', title: 'Breakup', desc: 'Final touch — close the loop', day: 10 },
-        ])
-        aiResponse = 'Generated a fresh 7-step multi-channel sequence! It includes email, LinkedIn, and a phone call spread over 10 days. Feel free to ask me to adjust anything.'
-      } else if (lower.includes('rule') && lower.includes('add')) {
-        setRules(prev => [...prev, { id: Date.now(), trigger: 'Custom trigger', action: 'Custom action', enabled: true }])
-        aiResponse = 'Added a new automation rule. You can edit the trigger and action in the Rules tab.'
-      } else {
-        aiResponse = `I can help with that! Here are some things I can do:\n• Add steps (email, call, LinkedIn, AI branch)\n• Generate a complete sequence\n• Shorten delays / make more aggressive\n• Remove steps\n• Add automation rules\n\nTry: "Add a LinkedIn message after day 3" or "Generate a 7-step sequence for CTOs"`
+      // If we're in a pending step creation flow
+      if (pendingStep) {
+        if (pendingStep.awaiting === 'day') {
+          const day = parseInt(msg) || (steps.length > 0 ? steps[steps.length - 1].day + 2 : 1)
+          const newStep = { ...pendingStep.step, day, id: Date.now() }
+          setSteps(prev => [...prev, newStep])
+          reply = `Added "${newStep.title}" on Day ${day}. The step is: ${newStep.desc}\n\nWant to add another step or modify this one?`
+          setPendingStep(null)
+        } else if (pendingStep.awaiting === 'desc') {
+          const updated = { ...pendingStep.step, desc: msg }
+          setPendingStep({ ...pendingStep, step: updated, awaiting: 'day' })
+          reply = `Got it. What day should this step execute? (Current last step is Day ${steps.length > 0 ? steps[steps.length - 1].day : 0})`
+        }
+        setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
+        return
       }
-      setChatMessages(prev => [...prev, { role: 'ai', text: aiResponse }])
-    }, 600)
+
+      // STEPS tab handlers
+      if (builderTab === 'steps' || !selectedSeq) {
+        if (lower.includes('add') && (lower.includes('email') || lower.includes('mail'))) {
+          setPendingStep({ step: { type: 'auto_email', title: 'Email Step' }, awaiting: 'desc' })
+          reply = "I'll add an email step. What should the email be about? (e.g. \"Personalized intro mentioning their recent funding round\")"
+        } else if (lower.includes('add') && lower.includes('linkedin')) {
+          setPendingStep({ step: { type: lower.includes('connect') ? 'linkedin_connect' : 'linkedin_msg', title: lower.includes('connect') ? 'LinkedIn Connect' : 'LinkedIn Message' }, awaiting: 'desc' })
+          reply = "Adding a LinkedIn step. What should the message/note say? Describe the content:"
+        } else if (lower.includes('add') && (lower.includes('call') || lower.includes('phone'))) {
+          setPendingStep({ step: { type: 'phone', title: 'Phone Call' }, awaiting: 'desc' })
+          reply = "Adding a phone call step. What's the call objective? (e.g. \"Discovery call — identify pain points\")"
+        } else if (lower.includes('add') && lower.includes('ai')) {
+          setPendingStep({ step: { type: 'ai_branch', title: 'AI Decision Point' }, awaiting: 'desc' })
+          reply = "Adding an AI branch. What should the AI evaluate? (e.g. \"Check sentiment: positive → meeting, objection → handler, silence → continue\")"
+        } else if (lower.includes('add') && lower.includes('task')) {
+          setPendingStep({ step: { type: 'task', title: 'Manual Task' }, awaiting: 'desc' })
+          reply = "Adding a manual task. What should the rep do? Describe the task:"
+        } else if (lower.includes('generate') || (lower.includes('create') && lower.includes('sequence'))) {
+          const persona = lower.includes('cto') ? 'CTOs' : lower.includes('vp') ? 'VPs' : lower.includes('cmo') ? 'CMOs' : 'decision-makers'
+          setSteps([
+            { id: Date.now(), type: 'auto_email', title: 'Personalized Intro', desc: `Cold intro to ${persona} referencing trigger event`, day: 1 },
+            { id: Date.now()+1, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with personalized note', day: 1 },
+            { id: Date.now()+2, type: 'auto_email', title: 'Value-Add Follow-up', desc: 'Share relevant insight if no reply', day: 3 },
+            { id: Date.now()+3, type: 'phone', title: 'Discovery Call', desc: 'Call with persona-specific talk track', day: 5 },
+            { id: Date.now()+4, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Casual message referencing previous touches', day: 6 },
+            { id: Date.now()+5, type: 'ai_branch', title: 'AI: Evaluate Engagement', desc: 'Route based on engagement signals', day: 7 },
+            { id: Date.now()+6, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — close loop with urgency', day: 10 },
+          ])
+          reply = `Generated a 7-step multi-channel sequence targeting ${persona}!\n\n✓ Day 1: Email + LinkedIn Connect\n✓ Day 3: Follow-up email\n✓ Day 5: Phone call\n✓ Day 6: LinkedIn DM\n✓ Day 7: AI evaluation\n✓ Day 10: Breakup\n\nWant me to adjust timing, add more steps, or change anything?`
+        } else if (lower.includes('aggressive') || lower.includes('shorten')) {
+          setSteps(prev => prev.map(s => ({ ...s, day: Math.max(1, Math.ceil(s.day * 0.6)) })))
+          reply = 'Done! Compressed all delays by ~40%. The cadence is now more aggressive.'
+        } else if (lower.includes('remove') && lower.includes('last')) {
+          setSteps(prev => prev.slice(0, -1))
+          reply = 'Removed the last step.'
+        } else {
+          reply = "I can help! Tell me what to do:\n• \"Add an email step\" — I'll ask for details\n• \"Add a LinkedIn connect\"\n• \"Add a phone call\"\n• \"Add an AI branch\"\n• \"Generate a complete sequence\"\n• \"Make it more aggressive\"\n• \"Remove last step\""
+        }
+      }
+      // RULES tab handlers
+      else if (builderTab === 'rules') {
+        if (lower.includes('add') && lower.includes('rule')) {
+          let trigger = '', action = ''
+          if (lower.includes('reply')) { trigger = 'Prospect replies'; action = 'Pause sequence' }
+          else if (lower.includes('open') && lower.includes('3')) { trigger = 'Email opened 3+ times'; action = 'Create urgent call task' }
+          else if (lower.includes('no engagement') || lower.includes('7 day')) { trigger = 'No engagement after 7 days'; action = 'Move to nurture cadence' }
+          else if (lower.includes('bounce')) { trigger = 'Email bounced'; action = 'Remove and flag' }
+          else { trigger = 'Custom trigger'; action = 'Custom action' }
+          setRules(prev => [...prev, { id: Date.now(), trigger, action, enabled: true }])
+          reply = `Added rule: "${trigger}" → "${action}". It's enabled by default.`
+        } else if (lower.includes('disable all')) {
+          setRules(prev => prev.map(r => ({ ...r, enabled: false })))
+          reply = 'All rules disabled.'
+        } else if (lower.includes('best practice')) {
+          reply = "Best practice rules for cold outbound:\n• Pause on reply (always on)\n• Finish on meeting booked\n• Remove on hard bounce\n• Pause 5d on out-of-office\n• Skip LinkedIn if email opened 3x\n\nWant me to add any of these?"
+        } else {
+          reply = "I can manage rules. Try:\n• \"Add a rule: pause on reply\"\n• \"Add a rule: if opened 3x, create call task\"\n• \"Disable all rules\"\n• \"Show best practice rules\""
+        }
+      }
+      // PROSPECTS tab handlers
+      else if (builderTab === 'prospects') {
+        if (lower.includes('add') && lower.includes('prospect')) {
+          reply = "To add a prospect, I need:\n1. Name\n2. Company\n3. Title\n\nOr you can paste an email and I'll look up the details. What's the prospect info?"
+        } else if (lower.includes('remove') && lower.includes('bounced')) {
+          setProspects(prev => prev.filter(p => p.state !== 'bounced'))
+          reply = 'Removed all bounced prospects from this sequence.'
+        } else if (lower.includes('stuck') || lower.includes('attention')) {
+          const stuck = prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'paused')
+          reply = stuck.length > 0 ? `${stuck.length} prospects are paused:\n${stuck.map(p => `• ${p.name} (${p.company}) — Step ${p.currentStep}`).join('\n')}\n\nWant me to resume them?` : 'No stuck prospects! Everyone is progressing normally.'
+        } else if (lower.includes('resume')) {
+          setProspects(prev => prev.map(p => p.state === 'paused' && p.sequenceId === selectedSeq?.id ? { ...p, state: 'active' } : p))
+          reply = 'Resumed all paused prospects in this sequence.'
+        } else {
+          reply = "I can help with prospects:\n• \"Add a new prospect\"\n• \"Remove all bounced prospects\"\n• \"Which prospects are stuck?\"\n• \"Resume paused prospects\""
+        }
+      }
+      // SETTINGS tab handlers
+      else if (builderTab === 'settings') {
+        if (lower.includes('send window') || lower.includes('9') && lower.includes('5')) {
+          reply = 'Updated send window to 9:00 AM — 5:00 PM in prospect timezone.'
+        } else if (lower.includes('throttle') || lower.includes('100') || lower.includes('limit')) {
+          reply = 'Email throttle updated to 100 emails/day. LinkedIn actions capped at 50/day.'
+        } else if (lower.includes('timezone')) {
+          reply = 'Switched to prospect timezone sending. Emails will deliver based on each prospect\'s local time.'
+        } else {
+          reply = "I can adjust settings:\n• \"Set send window to 9am-5pm\"\n• \"Limit to 100 emails per day\"\n• \"Use prospect timezone\"\n• \"Enable pause on out-of-office\""
+        }
+      }
+
+      setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
+    }, 500)
   }
 
   const deleteStep = (id) => setSteps(steps.filter(s => s.id !== id))
@@ -149,22 +224,23 @@ export default function Sequences() {
   const removeProspect = (id) => setProspects(prospects.filter(p => p.id !== id))
   const changeProspectSeq = (pid, sid) => setProspects(prospects.map(p => p.id === pid ? { ...p, sequenceId: parseInt(sid), currentStep: 1 } : p))
 
+  const currentContext = selectedSeq ? (copilotContexts[builderTab] || copilotContexts.steps) : copilotContexts.create
+
 
   return (
     <div>
-      {/* LIST VIEW with Tabs */}
+      {/* LIST VIEW */}
       {view === 'list' && (
         <>
           <div className="topbar">
             <h2>Sequences</h2>
-            <div className="actions"><button className="btn btn-primary">+ Create Sequence</button></div>
+            <div className="actions"><button className="btn btn-primary" onClick={openCreate}>+ Create Sequence</button></div>
           </div>
           <div style={{ padding: 24 }}>
             <div className="tabs">
               <button className={listTab === 'sequences' ? 'active' : ''} onClick={() => setListTab('sequences')}>Sequences ({sequences.length})</button>
               <button className={listTab === 'prospects' ? 'active' : ''} onClick={() => setListTab('prospects')}>Prospects ({prospects.length})</button>
             </div>
-
             {listTab === 'sequences' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <table>
@@ -172,39 +248,33 @@ export default function Sequences() {
                   <tbody>
                     {sequences.map(seq => (
                       <tr key={seq.id} style={{ cursor: 'pointer' }} onClick={() => openSequence(seq)}>
-                        <td>
-                          <div><strong>{seq.name}</strong></div>
-                          <div style={{ fontSize: 11, color: '#94a3b8' }}>{seq.steps} steps • {seq.days}d • {seq.tags.join(', ')}</div>
-                        </td>
+                        <td><strong>{seq.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{seq.steps} steps • {seq.days}d • {seq.tags.join(', ')}</div></td>
                         <td><span className={`badge ${seq.active ? 'badge-green' : 'badge-gray'}`}>{seq.active ? 'Active' : 'Paused'}</span></td>
-                        <td><span style={{ color: seq.score >= 70 ? '#16a34a' : seq.score >= 40 ? '#d97706' : '#dc2626', fontWeight: 700 }}>{seq.score}</span></td>
+                        <td style={{ color: seq.score >= 70 ? '#16a34a' : seq.score >= 40 ? '#d97706' : '#dc2626', fontWeight: 700 }}>{seq.score}</td>
                         <td style={{ fontSize: 12 }}>{seq.prospects.active} active</td>
                         <td>{seq.contacted.toLocaleString()}</td>
                         <td>{seq.opened}%</td>
                         <td style={{ fontWeight: 600 }}>{seq.replied}%</td>
                         <td style={{ fontSize: 12, color: '#64748b' }}>{seq.lastRun}</td>
-                        <td><div style={{ width: 26, height: 26, borderRadius: '50%', background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>{seq.owner}</div></td>
+                        <td><div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700 }}>{seq.owner}</div></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-
             {listTab === 'prospects' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <table>
-                  <thead><tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Step</th><th>Last Contact</th><th>Engagement</th><th></th></tr></thead>
+                  <thead><tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Step</th><th></th></tr></thead>
                   <tbody>
                     {prospects.map(p => (
                       <tr key={p.id}>
                         <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div></td>
                         <td>{p.company}</td>
                         <td><select value={p.sequenceId} onChange={e => changeProspectSeq(p.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 6px', fontSize: 11 }}>{sequences.map(s => <option key={s.id} value={s.id}>{s.name.substring(0, 25)}</option>)}</select></td>
-                        <td><span className={`badge ${p.state === 'active' ? 'badge-green' : p.state.includes('finished') ? 'badge-blue' : p.state === 'bounced' || p.state === 'opted_out' ? 'badge-red' : 'badge-yellow'}`}>{p.state.replace('_', ' ')}</span></td>
+                        <td><span className={`badge ${p.state === 'active' ? 'badge-green' : p.state.includes('finished') ? 'badge-blue' : 'badge-yellow'}`}>{p.state.replace('_', ' ')}</span></td>
                         <td>{p.currentStep}</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{p.lastContacted}</td>
-                        <td style={{ fontSize: 12 }}>{p.opened ? '○' : '·'}{p.clicked ? '○' : '·'}{p.replied ? '●' : '·'}</td>
                         <td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
                       </tr>
                     ))}
@@ -217,22 +287,21 @@ export default function Sequences() {
       )}
 
 
-      {/* BUILDER VIEW — Copilot Layout */}
+      {/* BUILDER VIEW */}
       {view === 'builder' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', height: 'calc(100vh - 0px)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', height: '100vh' }}>
           {/* LEFT: AI Copilot */}
           <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Sequence Copilot</div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>AI-assisted sequence builder</div>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>Copilot — {builderTab.charAt(0).toUpperCase() + builderTab.slice(1)}</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{selectedSeq ? 'Editing sequence' : 'Creating new sequence'}</div>
             </div>
 
-            {/* Chat messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {chatMessages.map((msg, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ maxWidth: '85%', padding: '10px 14px', borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: msg.role === 'user' ? '#6366f1' : '#f1f5f9', color: msg.role === 'user' ? '#fff' : '#1e293b', fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-                    {msg.text}
+            <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {chatMessages.map((m, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                  <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    {m.text}
                   </div>
                 </div>
               ))}
@@ -241,27 +310,26 @@ export default function Sequences() {
 
             {/* Conversation starters */}
             {chatMessages.length <= 1 && (
-              <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>Try asking</div>
-                {conversationStarters.slice(0, 4).map((s, i) => (
-                  <button key={i} onClick={() => { setChatInput(s); }} style={{ textAlign: 'left', padding: '8px 12px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, color: '#475569', cursor: 'pointer' }}>{s}</button>
+              <div style={{ padding: '0 14px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>Suggestions</div>
+                {currentContext.starters.slice(0, 4).map((s, i) => (
+                  <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '7px 11px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 11, color: '#475569', cursor: 'pointer' }}>{s}</button>
                 ))}
               </div>
             )}
 
-            {/* Input */}
-            <div style={{ padding: '12px 16px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8 }}>
-              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot to modify sequence..." style={{ flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
-              <button className="btn btn-primary" onClick={handleChat} style={{ padding: '10px 14px' }}>→</button>
+            <div style={{ padding: '10px 14px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
+              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
+              <button className="btn btn-primary" onClick={handleChat} style={{ padding: '9px 12px', fontSize: 12 }}>Send</button>
             </div>
           </div>
 
-          {/* RIGHT: Sequence Content */}
+          {/* RIGHT: Content */}
           <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div className="topbar" style={{ position: 'static' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button className="btn btn-sm" onClick={backToList}>←</button>
-                <h2 style={{ fontSize: 15 }}>{selectedSeq?.name}</h2>
+                <h2 style={{ fontSize: 14 }}>{selectedSeq?.name || 'New Sequence'}</h2>
               </div>
               <div className="view-toggle">
                 <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Steps</button>
@@ -272,28 +340,33 @@ export default function Sequences() {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-              {/* STEPS TAB */}
+              {/* STEPS */}
               {builderTab === 'steps' && (
                 <>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
                     {stepTypes.map(t => (
-                      <button key={t.type} className="btn btn-sm" onClick={() => { setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1 }]) }}>+ {t.label}</button>
+                      <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1 }])}>+ {t.label}</button>
                     ))}
                   </div>
+                  {steps.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+                      <div style={{ fontSize: 13, marginBottom: 8 }}>No steps yet. Use the copilot or buttons above to add steps.</div>
+                    </div>
+                  )}
                   {steps.map((step, idx) => {
                     const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
-                    const isNewDay = idx === 0 || step.day !== steps[idx - 1].day
+                    const isNewDay = idx === 0 || step.day !== steps[idx - 1]?.day
                     return (
                       <div key={step.id}>
-                        {isNewDay && <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', padding: '10px 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Day {step.day}</div>}
+                        {isNewDay && <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', padding: '10px 0 4px', textTransform: 'uppercase' }}>Day {step.day}</div>}
                         <div className="seq-step">
-                          <div style={{ width: 24, height: 24, borderRadius: 6, border: '2px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{idx + 1}</div>
+                          <div style={{ width: 22, height: 22, borderRadius: 5, border: '2px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{idx + 1}</div>
                           <div className="step-body">
                             <div className="title">{step.title} <span className={`badge ${st.cat === 'auto' ? 'badge-blue' : 'badge-gray'}`} style={{ fontSize: 9 }}>{st.cat}</span></div>
-                            <div className="desc">{step.desc}</div>
+                            {step.desc && <div className="desc">{step.desc}</div>}
                           </div>
                           <div className="step-actions">
-                            <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                            <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                           </div>
                         </div>
                       </div>
@@ -302,7 +375,7 @@ export default function Sequences() {
                 </>
               )}
 
-              {/* RULES TAB */}
+              {/* RULES */}
               {builderTab === 'rules' && (
                 <div className="card">
                   <div className="card-header"><h3>Automation Rules</h3></div>
@@ -317,43 +390,43 @@ export default function Sequences() {
                 </div>
               )}
 
-              {/* PROSPECTS TAB */}
+              {/* PROSPECTS */}
               {builderTab === 'prospects' && (
                 <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                   <table>
-                    <thead><tr><th>Prospect</th><th>State</th><th>Step</th><th>Engagement</th><th></th></tr></thead>
+                    <thead><tr><th>Prospect</th><th>State</th><th>Step</th><th></th></tr></thead>
                     <tbody>
                       {prospects.filter(p => p.sequenceId === selectedSeq?.id).map(p => (
                         <tr key={p.id}>
-                          <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.company} • {p.title}</div></td>
+                          <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.company}</div></td>
                           <td><span className={`badge ${p.state === 'active' ? 'badge-green' : 'badge-yellow'}`}>{p.state}</span></td>
                           <td>Step {p.currentStep}</td>
-                          <td style={{ fontSize: 12 }}>{p.opened ? 'Opened' : ''} {p.clicked ? '• Clicked' : ''} {p.replied ? '• Replied' : ''}</td>
                           <td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
                         </tr>
                       ))}
+                      {prospects.filter(p => p.sequenceId === selectedSeq?.id).length === 0 && (
+                        <tr><td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8', padding: 30 }}>No prospects. Ask copilot to add some.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
               )}
 
-              {/* SETTINGS TAB */}
+              {/* SETTINGS */}
               {builderTab === 'settings' && (
                 <div className="card">
-                  <div className="card-header"><h3>Sequence Settings</h3></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <div className="form-group"><label>Send Window</label><select><option>8:00 AM — 6:00 PM (Prospect TZ)</option></select></div>
-                    <div className="form-group"><label>Active Days</label><select><option>Weekdays Only</option></select></div>
-                    <div className="form-group"><label>Email Throttle</label><input type="number" defaultValue={200} /></div>
-                    <div className="form-group"><label>LinkedIn Limit</label><input type="number" defaultValue={50} /></div>
+                  <div className="card-header"><h3>Settings</h3></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div className="form-group"><label>Send Window</label><select><option>8:00 AM — 6:00 PM</option><option>9:00 AM — 5:00 PM</option></select></div>
+                    <div className="form-group"><label>Active Days</label><select><option>Weekdays</option><option>All Days</option></select></div>
+                    <div className="form-group"><label>Email Throttle/day</label><input type="number" defaultValue={200} /></div>
+                    <div className="form-group"><label>LinkedIn Limit/day</label><input type="number" defaultValue={50} /></div>
                   </div>
-                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {['Pause on reply', 'Pause on bounce', 'Skip weekends', 'Auto-detect OOO'].map((s, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8f9fb', borderRadius: 8 }}>
-                        <span style={{ fontSize: 13 }}>{s}</span><div className="toggle on" />
-                      </div>
-                    ))}
-                  </div>
+                  {['Pause on reply', 'Pause on bounce', 'Skip weekends', 'Auto-detect OOO'].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginTop: 8 }}>
+                      <span style={{ fontSize: 13 }}>{s}</span><div className="toggle on" />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
