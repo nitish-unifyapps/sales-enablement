@@ -1,64 +1,92 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 const stages = [
-  { id: 'discovery', name: 'Discovery', probability: 10 },
-  { id: 'qualified', name: 'Qualified', probability: 25 },
-  { id: 'proposal', name: 'Proposal', probability: 50 },
-  { id: 'negotiation', name: 'Negotiation', probability: 75 },
-  { id: 'closed', name: 'Closed Won', probability: 100 },
+  { id: 'discovery', name: 'Discovery', probability: 10, expectedDays: 14 },
+  { id: 'qualified', name: 'Qualified', probability: 25, expectedDays: 12 },
+  { id: 'proposal', name: 'Proposal', probability: 50, expectedDays: 10 },
+  { id: 'negotiation', name: 'Negotiation', probability: 75, expectedDays: 7 },
+  { id: 'closed_won', name: 'Closed Won', probability: 100, expectedDays: 0 },
+  { id: 'closed_lost', name: 'Closed Lost', probability: 0, expectedDays: 0 },
 ]
 
 const initialDeals = [
-  { id: 1, name: 'Enterprise CRM Suite', company: 'Acme Corp', value: 150000, stage: 'negotiation', owner: 'Sarah K.', closeDate: 'Aug 15', daysInStage: 5, health: 'green', lastTouch: 'Email today' },
-  { id: 2, name: 'Cloud Migration', company: 'Beta Inc', value: 85000, stage: 'proposal', owner: 'Mike T.', closeDate: 'Sep 01', daysInStage: 14, health: 'red', lastTouch: '14 days ago' },
-  { id: 3, name: 'Security Platform', company: 'Delta LLC', value: 310000, stage: 'qualified', owner: 'Sarah K.', closeDate: 'Nov 10', daysInStage: 3, health: 'green', lastTouch: 'Call yesterday' },
-  { id: 4, name: 'Data Analytics Pro', company: 'Omega Co', value: 220000, stage: 'discovery', owner: 'James P.', closeDate: 'Sep 20', daysInStage: 2, health: 'green', lastTouch: 'Meeting tmrw' },
-  { id: 5, name: 'API Integration', company: 'Zeta Tech', value: 95000, stage: 'proposal', owner: 'Mike T.', closeDate: 'Aug 30', daysInStage: 8, health: 'yellow', lastTouch: '5 days ago' },
-  { id: 6, name: 'HR Automation', company: 'Sigma HR', value: 175000, stage: 'discovery', owner: 'James P.', closeDate: 'Oct 15', daysInStage: 7, health: 'yellow', lastTouch: '7 days ago' },
-  { id: 7, name: 'Marketing Suite', company: 'Alpha Media', value: 130000, stage: 'qualified', owner: 'Sarah K.', closeDate: 'Sep 30', daysInStage: 11, health: 'yellow', lastTouch: '3 days ago' },
-  { id: 8, name: 'ERP Modernization', company: 'Kappa Mfg', value: 420000, stage: 'negotiation', owner: 'James P.', closeDate: 'Aug 25', daysInStage: 4, health: 'green', lastTouch: 'Call today' },
-  { id: 9, name: 'Support Platform', company: 'Lambda SaaS', value: 65000, stage: 'closed', owner: 'Mike T.', closeDate: 'Jun 18', daysInStage: 0, health: 'green', lastTouch: 'Won' },
-  { id: 10, name: 'Dev Tools License', company: 'Theta Dev', value: 48000, stage: 'closed', owner: 'Sarah K.', closeDate: 'Jun 20', daysInStage: 0, health: 'green', lastTouch: 'Won' },
+  { id: 1, name: 'Enterprise CRM Suite', company: 'Acme Corp', contact: 'Sarah Chen', value: 150000, stage: 'negotiation', owner: 'Sarah Kim', closeDate: '2026-08-15', createdDate: '2026-04-10', daysInStage: 5, health: 92, lastActivity: 'Email sent today', nextStep: 'Contract review call', tags: ['enterprise', 'crm'], source: 'Outbound', activities: 24, stakeholders: 4 },
+  { id: 2, name: 'Cloud Migration Platform', company: 'Beta Inc', contact: 'James Park', value: 85000, stage: 'proposal', owner: 'Mike Torres', closeDate: '2026-09-01', createdDate: '2026-03-22', daysInStage: 14, health: 38, lastActivity: '14 days ago', nextStep: 'Follow up on proposal', tags: ['cloud', 'infrastructure'], source: 'Inbound', activities: 8, stakeholders: 2 },
+  { id: 3, name: 'Security Platform License', company: 'Delta LLC', contact: 'Mike Torres', value: 310000, stage: 'qualified', owner: 'Sarah Kim', closeDate: '2026-11-10', createdDate: '2026-05-15', daysInStage: 3, health: 88, lastActivity: 'Call yesterday', nextStep: 'Technical demo with IT team', tags: ['security', 'enterprise'], source: 'Partner', activities: 12, stakeholders: 3 },
+  { id: 4, name: 'Data Analytics Pro', company: 'Omega Co', contact: 'Lisa Wang', value: 220000, stage: 'discovery', owner: 'James Park', closeDate: '2026-09-20', createdDate: '2026-06-01', daysInStage: 2, health: 75, lastActivity: 'Meeting tomorrow', nextStep: 'Discovery call', tags: ['analytics', 'data'], source: 'Outbound', activities: 4, stakeholders: 1 },
+  { id: 5, name: 'API Integration Layer', company: 'Zeta Tech', contact: 'Tom Harris', value: 95000, stage: 'proposal', owner: 'Mike Torres', closeDate: '2026-08-30', createdDate: '2026-04-08', daysInStage: 8, health: 55, lastActivity: '5 days ago', nextStep: 'Pricing discussion', tags: ['api', 'integration'], source: 'Inbound', activities: 15, stakeholders: 2 },
+  { id: 6, name: 'HR Automation Suite', company: 'Sigma HR', contact: 'Anna Lee', value: 175000, stage: 'discovery', owner: 'James Park', closeDate: '2026-10-15', createdDate: '2026-05-28', daysInStage: 7, health: 48, lastActivity: '7 days ago', nextStep: 'Qualification call', tags: ['hr', 'automation'], source: 'Event', activities: 3, stakeholders: 1 },
+  { id: 7, name: 'Marketing Automation', company: 'Alpha Media', contact: 'Ben Cross', value: 130000, stage: 'qualified', owner: 'Sarah Kim', closeDate: '2026-09-30', createdDate: '2026-04-20', daysInStage: 11, health: 62, lastActivity: '3 days ago', nextStep: 'ROI analysis presentation', tags: ['marketing'], source: 'Outbound', activities: 18, stakeholders: 3 },
+  { id: 8, name: 'ERP Modernization', company: 'Kappa Manufacturing', contact: 'Dave Miller', value: 420000, stage: 'negotiation', owner: 'James Park', closeDate: '2026-08-25', createdDate: '2026-02-15', daysInStage: 4, health: 85, lastActivity: 'Call today', nextStep: 'Final pricing + legal review', tags: ['erp', 'enterprise'], source: 'Outbound', activities: 42, stakeholders: 6 },
+  { id: 9, name: 'Support Platform', company: 'Lambda SaaS', contact: 'Raj Patel', value: 65000, stage: 'closed_won', owner: 'Mike Torres', closeDate: '2026-06-18', createdDate: '2026-03-01', daysInStage: 0, health: 100, lastActivity: 'Won', nextStep: 'Handoff to CS', tags: ['support'], source: 'Inbound', activities: 22, stakeholders: 3 },
+  { id: 10, name: 'Dev Tools License', company: 'Theta Dev', contact: 'Kim Yu', value: 48000, stage: 'closed_won', owner: 'Sarah Kim', closeDate: '2026-06-20', createdDate: '2026-04-05', daysInStage: 0, health: 100, lastActivity: 'Won', nextStep: 'Onboarding scheduled', tags: ['devtools'], source: 'Outbound', activities: 16, stakeholders: 2 },
+  { id: 11, name: 'Legacy System Replace', company: 'Nu Corp', contact: 'Ellen Marsh', value: 280000, stage: 'closed_lost', owner: 'James Park', closeDate: '2026-06-10', createdDate: '2026-01-20', daysInStage: 0, health: 0, lastActivity: 'Lost — went with competitor', nextStep: '', tags: ['legacy'], source: 'Outbound', activities: 30, stakeholders: 5 },
 ]
 
-const fmt = (n) => n >= 1000000 ? `$${(n/1000000).toFixed(1)}M` : n >= 1000 ? `$${(n/1000).toFixed(0)}K` : `$${n}`
+const fmt = (n) => n >= 1000000 ? `$${(n/1000000).toFixed(1)}M` : n >= 1000 ? `$${Math.round(n/1000)}K` : `$${n}`
 
 export default function Pipeline() {
   const [deals, setDeals] = useState(initialDeals)
-  const [view, setView] = useState('analytics')
+  const [view, setView] = useState('dashboard')
   const [filterOwner, setFilterOwner] = useState('All')
+  const [filterStage, setFilterStage] = useState('All')
   const [filterHealth, setFilterHealth] = useState('All')
+  const [filterSource, setFilterSource] = useState('All')
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('value')
+  const [sortDir, setSortDir] = useState('desc')
   const [dragDeal, setDragDeal] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name: '', company: '', value: '', stage: 'discovery', owner: '', closeDate: '' })
+  const [selectedDeal, setSelectedDeal] = useState(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [dealForm, setDealForm] = useState({ name: '', company: '', contact: '', value: '', stage: 'discovery', owner: '', closeDate: '', source: 'Outbound', nextStep: '', tags: '' })
 
   const owners = ['All', ...new Set(deals.map(d => d.owner))]
-  const filtered = deals.filter(d => (filterOwner === 'All' || d.owner === filterOwner) && (filterHealth === 'All' || d.health === filterHealth))
+  const sources = ['All', ...new Set(deals.map(d => d.source))]
 
-  const totalPipeline = deals.reduce((s, d) => s + d.value, 0)
-  const totalWon = deals.filter(d => d.stage === 'closed').reduce((s, d) => s + d.value, 0)
-  const winRate = deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'closed').length / deals.length) * 100) : 0
-  const avgCycle = Math.round(deals.reduce((s, d) => s + d.daysInStage, 0) / deals.length)
+  const filtered = useMemo(() => {
+    let d = deals.filter(dl => {
+      if (filterOwner !== 'All' && dl.owner !== filterOwner) return false
+      if (filterStage !== 'All' && dl.stage !== filterStage) return false
+      if (filterHealth === 'good' && dl.health < 70) return false
+      if (filterHealth === 'risk' && (dl.health < 40 || dl.health >= 70)) return false
+      if (filterHealth === 'critical' && dl.health >= 40) return false
+      if (filterSource !== 'All' && dl.source !== filterSource) return false
+      if (search && !dl.name.toLowerCase().includes(search.toLowerCase()) && !dl.company.toLowerCase().includes(search.toLowerCase())) return false
+      return true
+    })
+    d.sort((a, b) => sortDir === 'desc' ? b[sortBy] - a[sortBy] : a[sortBy] - b[sortBy])
+    return d
+  }, [deals, filterOwner, filterStage, filterHealth, filterSource, search, sortBy, sortDir])
 
-  const stageData = stages.map(s => ({
+  const activeDeals = deals.filter(d => !d.stage.startsWith('closed'))
+  const totalPipeline = activeDeals.reduce((s, d) => s + d.value, 0)
+  const weightedPipeline = activeDeals.reduce((s, d) => s + d.value * ((stages.find(st => st.id === d.stage)?.probability || 0) / 100), 0)
+  const wonDeals = deals.filter(d => d.stage === 'closed_won')
+  const lostDeals = deals.filter(d => d.stage === 'closed_lost')
+  const totalWon = wonDeals.reduce((s, d) => s + d.value, 0)
+  const winRate = wonDeals.length + lostDeals.length > 0 ? Math.round((wonDeals.length / (wonDeals.length + lostDeals.length)) * 100) : 0
+  const avgDealSize = activeDeals.length > 0 ? Math.round(totalPipeline / activeDeals.length) : 0
+  const atRisk = activeDeals.filter(d => d.health < 50).length
+
+  const moveDeal = (dealId, newStage) => setDeals(deals.map(d => d.id === dealId ? { ...d, stage: newStage, daysInStage: 0 } : d))
+  const deleteDeal = (id) => { setDeals(deals.filter(d => d.id !== id)); setSelectedDeal(null) }
+  const addDeal = () => {
+    if (!dealForm.name || !dealForm.company) return
+    setDeals([...deals, { id: Date.now(), ...dealForm, value: parseInt(dealForm.value) || 0, daysInStage: 0, health: 70, lastActivity: 'Just created', activities: 0, stakeholders: 0, tags: dealForm.tags.split(',').map(t => t.trim()).filter(Boolean), createdDate: new Date().toISOString().split('T')[0] }])
+    setShowAddModal(false)
+    setDealForm({ name: '', company: '', contact: '', value: '', stage: 'discovery', owner: '', closeDate: '', source: 'Outbound', nextStep: '', tags: '' })
+  }
+
+  const healthColor = (h) => h >= 70 ? '#16a34a' : h >= 40 ? '#d97706' : '#dc2626'
+  const healthLabel = (h) => h >= 70 ? 'Healthy' : h >= 40 ? 'At Risk' : 'Critical'
+
+  const stageData = stages.filter(s => !s.id.startsWith('closed')).map(s => ({
     ...s,
     deals: filtered.filter(d => d.stage === s.id),
     total: filtered.filter(d => d.stage === s.id).reduce((sum, d) => sum + d.value, 0),
     count: filtered.filter(d => d.stage === s.id).length,
   }))
 
-  const addDeal = () => {
-    if (!form.name || !form.company) return
-    setDeals([...deals, { id: Date.now(), ...form, value: parseInt(form.value) || 0, daysInStage: 0, health: 'green', lastTouch: 'Just created' }])
-    setShowModal(false)
-    setForm({ name: '', company: '', value: '', stage: 'discovery', owner: '', closeDate: '' })
-  }
-
-  const moveDeal = (dealId, newStage) => {
-    setDeals(deals.map(d => d.id === dealId ? { ...d, stage: newStage, daysInStage: 0 } : d))
-  }
-
-  const deleteDeal = (id) => setDeals(deals.filter(d => d.id !== id))
 
   return (
     <div>
@@ -66,84 +94,122 @@ export default function Pipeline() {
         <h2>Pipeline Analytics & Reporting</h2>
         <div className="actions">
           <div className="view-toggle">
-            <button className={view === 'analytics' ? 'active' : ''} onClick={() => setView('analytics')}>Analytics</button>
+            <button className={view === 'dashboard' ? 'active' : ''} onClick={() => setView('dashboard')}>Dashboard</button>
             <button className={view === 'kanban' ? 'active' : ''} onClick={() => setView('kanban')}>Board</button>
             <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>Table</button>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ New Deal</button>
+          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>+ New Deal</button>
         </div>
       </div>
 
       <div style={{ padding: 24 }}>
         {/* Filters */}
         <div className="filter-bar">
-          <select value={filterOwner} onChange={e => setFilterOwner(e.target.value)}>
-            {owners.map(o => <option key={o} value={o}>{o === 'All' ? 'All Owners' : o}</option>)}
+          <input className="search-box" style={{ width: 240 }} placeholder="Search deals..." value={search} onChange={e => setSearch(e.target.value)} />
+          <select value={filterOwner} onChange={e => setFilterOwner(e.target.value)}>{owners.map(o => <option key={o} value={o}>{o === 'All' ? 'All Owners' : o}</option>)}</select>
+          <select value={filterStage} onChange={e => setFilterStage(e.target.value)}>
+            <option value="All">All Stages</option>
+            {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
           <select value={filterHealth} onChange={e => setFilterHealth(e.target.value)}>
             <option value="All">All Health</option>
-            <option value="green">Healthy</option>
-            <option value="yellow">At Risk</option>
-            <option value="red">Critical</option>
+            <option value="good">Healthy (70+)</option>
+            <option value="risk">At Risk (40-69)</option>
+            <option value="critical">Critical (&lt;40)</option>
           </select>
-          <span style={{ fontSize: 12, color: '#64748b' }}>{filtered.length} deals • {fmt(filtered.reduce((s, d) => s + d.value, 0))} total</span>
+          <select value={filterSource} onChange={e => setFilterSource(e.target.value)}>{sources.map(s => <option key={s} value={s}>{s === 'All' ? 'All Sources' : s}</option>)}</select>
+          <span style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto' }}>{filtered.length} deals — {fmt(filtered.reduce((s, d) => s + d.value, 0))}</span>
         </div>
 
-        {/* ANALYTICS VIEW */}
-        {view === 'analytics' && (
+        {/* DASHBOARD VIEW */}
+        {view === 'dashboard' && (
           <>
-            <div className="stats-grid">
-              <div className="stat-box"><div className="value">{fmt(totalPipeline)}</div><div className="label">Total Pipeline</div></div>
-              <div className="stat-box"><div className="value">{fmt(totalWon)}</div><div className="label">Closed Won</div></div>
+            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
+              <div className="stat-box"><div className="value">{fmt(totalPipeline)}</div><div className="label">Active Pipeline</div></div>
+              <div className="stat-box"><div className="value">{fmt(weightedPipeline)}</div><div className="label">Weighted Pipeline</div></div>
+              <div className="stat-box"><div className="value" style={{ color: '#16a34a' }}>{fmt(totalWon)}</div><div className="label">Closed Won</div></div>
               <div className="stat-box"><div className="value">{winRate}%</div><div className="label">Win Rate</div></div>
-              <div className="stat-box"><div className="value">3.2x</div><div className="label">Coverage Ratio</div></div>
-              <div className="stat-box"><div className="value">{avgCycle}d</div><div className="label">Avg Days in Stage</div></div>
+              <div className="stat-box"><div className="value">{fmt(avgDealSize)}</div><div className="label">Avg Deal Size</div></div>
+              <div className="stat-box"><div className="value" style={{ color: atRisk > 0 ? '#dc2626' : '#16a34a' }}>{atRisk}</div><div className="label">Deals at Risk</div></div>
             </div>
 
+            {/* Funnel */}
             <div className="card">
-              <div className="card-header"><h3>Pipeline Conversion Funnel</h3></div>
+              <div className="card-header"><h3>Pipeline Funnel</h3></div>
               {stageData.map((s, i) => {
-                const maxVal = Math.max(...stageData.map(x => x.total))
-                const pct = maxVal > 0 ? (s.total / maxVal) * 100 : 0
+                const maxVal = Math.max(...stageData.map(x => x.total), 1)
+                const pct = (s.total / maxVal) * 100
                 const convRate = i > 0 && stageData[i-1].count > 0 ? Math.round((s.count / stageData[i-1].count) * 100) : 100
                 return (
                   <div className="funnel-row" key={s.id}>
                     <span className="stage">{s.name}</span>
                     <span className="amount">{fmt(s.total)}</span>
-                    <div className="bar-wrap">
-                      <div className="bar" style={{ width: `${pct}%` }}><span>{s.count} deals</span></div>
-                    </div>
+                    <div className="bar-wrap"><div className="bar" style={{ width: `${pct}%` }}><span>{s.count}</span></div></div>
                     <span className="rate">{convRate}%</span>
                   </div>
                 )
               })}
             </div>
 
-            <div className="card">
-              <div className="card-header"><h3>Deal Velocity — Avg Days per Stage</h3></div>
-              {stageData.filter(s => s.id !== 'closed').map(s => {
-                const avgDays = s.deals.length > 0 ? Math.round(s.deals.reduce((sum, d) => sum + d.daysInStage, 0) / s.deals.length) : 0
-                const maxDays = 20
-                const colors = { discovery: '#6366f1', qualified: '#2563eb', proposal: '#0891b2', negotiation: '#16a34a' }
-                return (
-                  <div className="velocity-card" key={s.id}>
-                    <span className="v-stage">{s.name}</span>
-                    <div className="v-bar"><div className="v-fill" style={{ width: `${(avgDays / maxDays) * 100}%`, background: colors[s.id] || '#6366f1' }} /></div>
-                    <span className="v-days">{avgDays} days</span>
+            {/* Deal Health Distribution + Velocity side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div className="card">
+                <div className="card-header"><h3>Deal Health Distribution</h3></div>
+                {[
+                  { label: 'Healthy (70–100)', count: activeDeals.filter(d => d.health >= 70).length, color: '#16a34a' },
+                  { label: 'At Risk (40–69)', count: activeDeals.filter(d => d.health >= 40 && d.health < 70).length, color: '#d97706' },
+                  { label: 'Critical (0–39)', count: activeDeals.filter(d => d.health < 40).length, color: '#dc2626' },
+                ].map(h => (
+                  <div key={h.label} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: h.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, flex: 1 }}>{h.label}</span>
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{h.count}</span>
+                    <div style={{ width: 100, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${activeDeals.length > 0 ? (h.count / activeDeals.length) * 100 : 0}%`, background: h.color, borderRadius: 3 }} />
+                    </div>
                   </div>
-                )
-              })}
+                ))}
+              </div>
+              <div className="card">
+                <div className="card-header"><h3>Stage Velocity (Avg Days)</h3></div>
+                {stageData.map(s => {
+                  const avg = s.deals.length > 0 ? Math.round(s.deals.reduce((sum, d) => sum + d.daysInStage, 0) / s.deals.length) : 0
+                  const overdue = avg > s.expectedDays
+                  return (
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <span style={{ fontSize: 13, width: 100 }}>{s.name}</span>
+                      <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${Math.min((avg / 20) * 100, 100)}%`, background: overdue ? '#dc2626' : '#6366f1', borderRadius: 3 }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: overdue ? '#dc2626' : '#1e293b', width: 50, textAlign: 'right' }}>{avg}d / {s.expectedDays}d</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
-            <div className="card" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
-              <div className="card-header"><h3>⚠️ Risk Signals</h3></div>
-              {deals.filter(d => d.health === 'red' || d.daysInStage > 10).map(d => (
-                <div key={d.id} style={{ padding: '10px 14px', background: '#fff', borderRadius: 8, marginBottom: 8, fontSize: 13, border: '1px solid #fde68a', display: 'flex', justifyContent: 'space-between' }}>
-                  <span><strong>{d.name}</strong> ({d.company}) — stalled {d.daysInStage} days in {stages.find(s => s.id === d.stage)?.name}</span>
-                  <span className={`badge ${d.health === 'red' ? 'badge-red' : 'badge-yellow'}`}>{d.health === 'red' ? 'Critical' : 'At Risk'}</span>
-                </div>
-              ))}
-            </div>
+            {/* At-risk deals */}
+            {atRisk > 0 && (
+              <div className="card" style={{ borderColor: '#fde68a' }}>
+                <div className="card-header"><h3>Deals Needing Attention</h3><span className="badge badge-red">{atRisk} at risk</span></div>
+                <table>
+                  <thead><tr><th>Deal</th><th>Value</th><th>Stage</th><th>Health</th><th>Days in Stage</th><th>Last Activity</th><th>Next Step</th></tr></thead>
+                  <tbody>
+                    {activeDeals.filter(d => d.health < 50).map(d => (
+                      <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedDeal(d)}>
+                        <td><strong>{d.name}</strong><div style={{ fontSize: 11, color: '#64748b' }}>{d.company}</div></td>
+                        <td style={{ fontWeight: 600 }}>{fmt(d.value)}</td>
+                        <td>{stages.find(s => s.id === d.stage)?.name}</td>
+                        <td><span style={{ color: healthColor(d.health), fontWeight: 700 }}>{d.health}</span></td>
+                        <td style={{ color: d.daysInStage > 10 ? '#dc2626' : 'inherit' }}>{d.daysInStage}d</td>
+                        <td style={{ fontSize: 12, color: '#64748b' }}>{d.lastActivity}</td>
+                        <td style={{ fontSize: 12 }}>{d.nextStep}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         )}
 
@@ -155,22 +221,21 @@ export default function Pipeline() {
                 <div className="kanban-col-header">
                   <div>
                     <div className="stage-name">{s.name}</div>
-                    <div className="stage-meta">{s.count} deals • {fmt(s.total)}</div>
+                    <div className="stage-meta">{s.count} deals — {fmt(s.total)}</div>
                   </div>
                   <span className="badge badge-gray">{s.probability}%</span>
                 </div>
                 {s.deals.map(d => (
-                  <div key={d.id} className={`deal-card ${dragDeal === d.id ? 'dragging' : ''}`} draggable onDragStart={() => setDragDeal(d.id)} onDragEnd={() => setDragDeal(null)}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div className="deal-name">{d.name}</div>
-                        <div className="deal-company">{d.company} • {d.owner}</div>
-                      </div>
-                      <span className={`health-dot ${d.health}`} />
+                  <div key={d.id} className={`deal-card ${dragDeal === d.id ? 'dragging' : ''}`} draggable onDragStart={() => setDragDeal(d.id)} onDragEnd={() => setDragDeal(null)} onClick={() => setSelectedDeal(d)}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                      <div className="deal-name">{d.name}</div>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: healthColor(d.health), flexShrink: 0, marginTop: 4 }} />
                     </div>
+                    <div className="deal-company">{d.company}</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{d.nextStep}</div>
                     <div className="deal-footer">
                       <span className="deal-value">{fmt(d.value)}</span>
-                      <span className="deal-date">{d.closeDate} • {d.daysInStage}d</span>
+                      <span className="deal-date">{d.daysInStage}d — {d.owner.split(' ')[0]}</span>
                     </div>
                   </div>
                 ))}
@@ -184,44 +249,175 @@ export default function Pipeline() {
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <table>
               <thead>
-                <tr><th>Deal</th><th>Company</th><th>Value</th><th>Stage</th><th>Owner</th><th>Close Date</th><th>Days</th><th>Health</th><th></th></tr>
+                <tr>
+                  <th style={{ cursor: 'pointer' }} onClick={() => { setSortBy('name'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc') }}>Deal {sortBy === 'name' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th>Company</th>
+                  <th style={{ cursor: 'pointer' }} onClick={() => { setSortBy('value'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc') }}>Value {sortBy === 'value' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th>Stage</th>
+                  <th>Owner</th>
+                  <th>Close Date</th>
+                  <th style={{ cursor: 'pointer' }} onClick={() => { setSortBy('daysInStage'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc') }}>Days {sortBy === 'daysInStage' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th style={{ cursor: 'pointer' }} onClick={() => { setSortBy('health'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc') }}>Health {sortBy === 'health' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th>Next Step</th>
+                  <th>Source</th>
+                  <th></th>
+                </tr>
               </thead>
               <tbody>
                 {filtered.map(d => (
-                  <tr key={d.id}>
+                  <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedDeal(d)}>
                     <td><strong>{d.name}</strong></td>
-                    <td>{d.company}</td>
-                    <td style={{ fontWeight: 600 }}>{fmt(d.value)}</td>
+                    <td>{d.company}<div style={{ fontSize: 11, color: '#94a3b8' }}>{d.contact}</div></td>
+                    <td style={{ fontWeight: 700 }}>{fmt(d.value)}</td>
                     <td>
-                      <select value={d.stage} onChange={e => moveDeal(d.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 8px', fontSize: 12 }}>
+                      <select value={d.stage} onClick={e => e.stopPropagation()} onChange={e => moveDeal(d.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 8px', fontSize: 11 }}>
                         {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </td>
-                    <td>{d.owner}</td>
-                    <td>{d.closeDate}</td>
-                    <td>{d.daysInStage}d</td>
-                    <td><span className={`health-dot ${d.health}`} /></td>
-                    <td><button className="btn btn-sm btn-danger" onClick={() => deleteDeal(d.id)}>✕</button></td>
+                    <td style={{ fontSize: 12 }}>{d.owner}</td>
+                    <td style={{ fontSize: 12 }}>{d.closeDate}</td>
+                    <td style={{ color: d.daysInStage > 10 ? '#dc2626' : 'inherit', fontWeight: 500 }}>{d.daysInStage}d</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 32, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${d.health}%`, background: healthColor(d.health), borderRadius: 3 }} />
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: healthColor(d.health) }}>{d.health}</span>
+                      </div>
+                    </td>
+                    <td style={{ fontSize: 12, color: '#64748b', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.nextStep}</td>
+                    <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{d.source}</span></td>
+                    <td onClick={e => e.stopPropagation()}><button className="btn btn-sm btn-danger" onClick={() => deleteDeal(d.id)}>×</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+
       </div>
 
-      {showModal && (
-        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+      {/* DEAL DETAIL PANEL */}
+      {selectedDeal && (
+        <div className="modal-backdrop" onClick={() => setSelectedDeal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 640, maxHeight: '90vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div>
+                <h3 style={{ marginBottom: 4 }}>{selectedDeal.name}</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>{selectedDeal.company} — {selectedDeal.contact}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 24, fontWeight: 800, color: healthColor(selectedDeal.health) }}>{selectedDeal.health}</span>
+                <span style={{ fontSize: 11, color: healthColor(selectedDeal.health), fontWeight: 600 }}>{healthLabel(selectedDeal.health)}</span>
+              </div>
+            </div>
+
+            {/* Key metrics row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+              <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{fmt(selectedDeal.value)}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>Deal Value</div>
+              </div>
+              <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{selectedDeal.daysInStage}d</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>Days in Stage</div>
+              </div>
+              <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{selectedDeal.activities}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>Activities</div>
+              </div>
+              <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{selectedDeal.stakeholders}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>Stakeholders</div>
+              </div>
+            </div>
+
+            {/* Deal details grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20, fontSize: 13 }}>
+              <div><span style={{ color: '#64748b' }}>Stage:</span> <strong>{stages.find(s => s.id === selectedDeal.stage)?.name}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Owner:</span> <strong>{selectedDeal.owner}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Close Date:</span> <strong>{selectedDeal.closeDate}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Created:</span> <strong>{selectedDeal.createdDate}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Source:</span> <strong>{selectedDeal.source}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Last Activity:</span> <strong>{selectedDeal.lastActivity}</strong></div>
+            </div>
+
+            {/* Next step */}
+            <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>NEXT STEP</div>
+              <div style={{ fontSize: 13 }}>{selectedDeal.nextStep || 'No next step defined'}</div>
+            </div>
+
+            {/* Tags */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>TAGS</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {selectedDeal.tags?.map(t => <span key={t} className="badge badge-gray">{t}</span>)}
+              </div>
+            </div>
+
+            {/* Health signals */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 8 }}>HEALTH SIGNALS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fb', borderRadius: 6 }}>
+                  <span>Activity recency</span>
+                  <span style={{ fontWeight: 600, color: selectedDeal.lastActivity.includes('today') || selectedDeal.lastActivity.includes('yesterday') ? '#16a34a' : '#d97706' }}>
+                    {selectedDeal.lastActivity.includes('today') || selectedDeal.lastActivity.includes('yesterday') ? 'Good' : 'Needs attention'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fb', borderRadius: 6 }}>
+                  <span>Stage aging</span>
+                  <span style={{ fontWeight: 600, color: selectedDeal.daysInStage <= (stages.find(s => s.id === selectedDeal.stage)?.expectedDays || 14) ? '#16a34a' : '#dc2626' }}>
+                    {selectedDeal.daysInStage}d / {stages.find(s => s.id === selectedDeal.stage)?.expectedDays || 14}d expected
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fb', borderRadius: 6 }}>
+                  <span>Stakeholder engagement</span>
+                  <span style={{ fontWeight: 600, color: selectedDeal.stakeholders >= 3 ? '#16a34a' : '#d97706' }}>{selectedDeal.stakeholders} engaged</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f8f9fb', borderRadius: 6 }}>
+                  <span>Total activities</span>
+                  <span style={{ fontWeight: 600 }}>{selectedDeal.activities}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Stage change */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Move to:</span>
+              {stages.filter(s => s.id !== selectedDeal.stage).map(s => (
+                <button key={s.id} className="btn btn-sm" onClick={() => { moveDeal(selectedDeal.id, s.id); setSelectedDeal({ ...selectedDeal, stage: s.id }) }}>{s.name}</button>
+              ))}
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn btn-danger" onClick={() => deleteDeal(selectedDeal.id)}>Delete Deal</button>
+              <button className="btn" onClick={() => setSelectedDeal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD DEAL MODAL */}
+      {showAddModal && (
+        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h3>Add New Deal</h3>
-            <div className="form-group"><label>Deal Name</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Enterprise CRM Suite" /></div>
-            <div className="form-group"><label>Company</label><input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder="e.g. Acme Corp" /></div>
-            <div className="form-group"><label>Deal Value ($)</label><input type="number" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })} placeholder="e.g. 150000" /></div>
-            <div className="form-group"><label>Stage</label><select value={form.stage} onChange={e => setForm({ ...form, stage: e.target.value })}>{stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-            <div className="form-group"><label>Owner</label><input value={form.owner} onChange={e => setForm({ ...form, owner: e.target.value })} placeholder="e.g. Sarah K." /></div>
-            <div className="form-group"><label>Expected Close Date</label><input value={form.closeDate} onChange={e => setForm({ ...form, closeDate: e.target.value })} placeholder="e.g. Aug 30" /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group"><label>Deal Name</label><input value={dealForm.name} onChange={e => setDealForm({ ...dealForm, name: e.target.value })} placeholder="e.g. Enterprise CRM Suite" /></div>
+              <div className="form-group"><label>Company</label><input value={dealForm.company} onChange={e => setDealForm({ ...dealForm, company: e.target.value })} placeholder="e.g. Acme Corp" /></div>
+              <div className="form-group"><label>Contact</label><input value={dealForm.contact} onChange={e => setDealForm({ ...dealForm, contact: e.target.value })} placeholder="e.g. Sarah Chen" /></div>
+              <div className="form-group"><label>Deal Value ($)</label><input type="number" value={dealForm.value} onChange={e => setDealForm({ ...dealForm, value: e.target.value })} /></div>
+              <div className="form-group"><label>Stage</label><select value={dealForm.stage} onChange={e => setDealForm({ ...dealForm, stage: e.target.value })}>{stages.filter(s => !s.id.startsWith('closed')).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+              <div className="form-group"><label>Owner</label><input value={dealForm.owner} onChange={e => setDealForm({ ...dealForm, owner: e.target.value })} placeholder="e.g. Sarah Kim" /></div>
+              <div className="form-group"><label>Expected Close Date</label><input type="date" value={dealForm.closeDate} onChange={e => setDealForm({ ...dealForm, closeDate: e.target.value })} /></div>
+              <div className="form-group"><label>Source</label><select value={dealForm.source} onChange={e => setDealForm({ ...dealForm, source: e.target.value })}><option>Outbound</option><option>Inbound</option><option>Partner</option><option>Event</option></select></div>
+            </div>
+            <div className="form-group"><label>Next Step</label><input value={dealForm.nextStep} onChange={e => setDealForm({ ...dealForm, nextStep: e.target.value })} placeholder="e.g. Schedule discovery call" /></div>
+            <div className="form-group"><label>Tags (comma separated)</label><input value={dealForm.tags} onChange={e => setDealForm({ ...dealForm, tags: e.target.value })} placeholder="e.g. enterprise, crm, priority" /></div>
             <div className="modal-actions">
-              <button className="btn" onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="btn" onClick={() => setShowAddModal(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={addDeal}>Create Deal</button>
             </div>
           </div>
