@@ -333,178 +333,127 @@ export default function Sequences() {
                 <h2 style={{ fontSize: 14 }}>{selectedSeq?.name || 'New Sequence'}</h2>
               </div>
               <div className="view-toggle">
-                <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Steps</button>
-                <button className={builderTab === 'rules' ? 'active' : ''} onClick={() => setBuilderTab('rules')}>Rules</button>
+                <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Flow Builder</button>
                 <button className={builderTab === 'prospects' ? 'active' : ''} onClick={() => setBuilderTab('prospects')}>Prospects</button>
                 <button className={builderTab === 'settings' ? 'active' : ''} onClick={() => setBuilderTab('settings')}>Settings</button>
               </div>
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-              {/* STEPS */}
+              {/* FLOW BUILDER - unified steps + rules inline */}
               {builderTab === 'steps' && (
                 <>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+                  {/* Toolbar */}
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', marginRight: 4 }}>Add:</span>
                     {stepTypes.map(t => (
-                      <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1 }])}>+ {t.label}</button>
+                      <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1, condition: 'always', exitOn: '' }])}>+ {t.label}</button>
                     ))}
                   </div>
+
+                  {/* Exit Conditions Bar */}
+                  <div style={{ padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', fontSize: 11 }}>
+                    <span style={{ fontWeight: 700, color: '#475569' }}>Auto-exit on:</span>
+                    {['Reply received', 'Meeting booked', 'Opted out', 'Hard bounce', 'Deal closed'].map((e, i) => (
+                      <span key={i} style={{ padding: '3px 8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, color: '#16a34a', fontWeight: 500 }}>✓ {e}</span>
+                    ))}
+                  </div>
+
                   {steps.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
-                      <div style={{ fontSize: 13 }}>No steps yet. Use the copilot or buttons above to add steps.</div>
+                    <div style={{ textAlign: 'center', padding: '50px 20px', color: '#94a3b8', fontSize: 13 }}>
+                      No steps yet. Use the buttons above or ask the copilot to build your sequence.
                     </div>
                   )}
+
+                  {/* Step Flow */}
                   {steps.map((step, idx) => {
                     const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
                     const isNewDay = idx === 0 || step.day !== steps[idx - 1]?.day
                     return (
                       <div key={step.id}>
-                        {isNewDay && <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', padding: '10px 0 4px', textTransform: 'uppercase' }}>Day {step.day}</div>}
-                        <div className="seq-step">
-                          <div style={{ width: 22, height: 22, borderRadius: 5, border: '2px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{idx + 1}</div>
-                          <div className="step-body">
-                            <div className="title">{step.title} <span className={`badge ${st.cat === 'auto' ? 'badge-blue' : 'badge-gray'}`} style={{ fontSize: 9 }}>{st.cat}</span></div>
-                            {step.desc && <div className="desc">{step.desc}</div>}
+                        {/* Day separator with wait indicator */}
+                        {isNewDay && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 6px' }}>
+                            <div style={{ height: 1, flex: 1, background: '#e5e7eb' }} />
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '3px 10px', borderRadius: 10 }}>
+                              {idx === 0 ? 'START — Day 1' : `Wait ${step.day - (steps[idx-1]?.day || 0)}d → Day ${step.day}`}
+                            </span>
+                            <div style={{ height: 1, flex: 1, background: '#e5e7eb' }} />
                           </div>
-                          <div className="step-actions">
-                            <button onClick={() => setEditingStep(step)} title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                            <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        )}
+
+                        {/* Step Card */}
+                        <div className="seq-step" style={{ flexDirection: 'column', gap: 0, padding: 0, overflow: 'hidden' }}>
+                          {/* Step header */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px' }}>
+                            <div style={{ width: 24, height: 24, borderRadius: 6, border: '2px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{idx + 1}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {step.title}
+                                <span className={`badge ${st.cat === 'auto' ? 'badge-blue' : 'badge-gray'}`} style={{ fontSize: 9 }}>{st.cat}</span>
+                              </div>
+                              {step.desc && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{step.desc}</div>}
+                            </div>
+                            <div className="step-actions">
+                              <button onClick={() => setEditingStep(step)} title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                              <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                            </div>
                           </div>
+
+                          {/* Inline condition/branching */}
+                          {step.condition && step.condition !== 'always' && (
+                            <div style={{ padding: '6px 16px 10px', background: '#faf5ff', borderTop: '1px dashed #e0e7ff', fontSize: 11, color: '#6366f1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12H16L14 15H10L8 12H2"/></svg>
+                              Condition: {step.condition.replace(/_/g, ' ')}
+                            </div>
+                          )}
+
+                          {/* Inline branching for AI steps */}
+                          {step.type === 'ai_branch' && (
+                            <div style={{ padding: '8px 16px 12px', background: '#f8f9fb', borderTop: '1px solid #f1f5f9' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontSize: 11 }}>
+                                <div style={{ padding: '6px 8px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7' }}><strong style={{ color: '#16a34a' }}>Positive</strong> → Book meeting</div>
+                                <div style={{ padding: '6px 8px', background: '#fef9c3', borderRadius: 6, border: '1px solid #fde68a' }}><strong style={{ color: '#a16207' }}>Objection</strong> → Handler email</div>
+                                <div style={{ padding: '6px 8px', background: '#f1f5f9', borderRadius: 6, border: '1px solid #e5e7eb' }}><strong style={{ color: '#64748b' }}>Silent</strong> → Continue</div>
+                              </div>
+                            </div>
+                          )}
                         </div>
+
+                        {/* Between-step connector: engagement trigger point */}
+                        {idx < steps.length - 1 && (
+                          <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
+                            <div style={{ width: 2, height: 16, background: '#e5e7eb' }} />
+                          </div>
+                        )}
                       </div>
                     )
                   })}
-                </>
-              )}
 
-              {/* RULES */}
-              {builderTab === 'rules' && (
-                <>
-                  {/* Branching Logic */}
-                  <div className="card">
-                    <div className="card-header"><h3>Branching Logic</h3><span style={{ fontSize: 11, color: '#64748b' }}>Route prospects based on engagement signals</span></div>
-                    {[
-                      { id: 'b1', trigger: 'Email opened', condition: 'within 24hrs', ifTrue: 'Route to Phone Call step', ifFalse: 'Continue to next email' },
-                      { id: 'b2', trigger: 'Link clicked', condition: 'any link', ifTrue: 'Skip ahead to meeting request', ifFalse: 'Continue sequence normally' },
-                      { id: 'b3', trigger: 'No engagement', condition: 'after 3 steps', ifTrue: 'Escalate to LinkedIn channel', ifFalse: 'N/A' },
-                      { id: 'b4', trigger: 'LinkedIn accepted', condition: 'connection accepted', ifTrue: 'Skip to LinkedIn DM step', ifFalse: 'Continue email sequence' },
-                      { id: 'b5', trigger: 'Page visit detected', condition: 'pricing or demo page', ifTrue: 'Create urgent call task + notify rep', ifFalse: 'Continue sequence normally' },
-                    ].map(b => (
-                      <div key={b.id} style={{ padding: 14, border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 8 }}>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                          <span className="badge badge-blue">{b.trigger}</span>
-                          <span style={{ fontSize: 11, color: '#64748b' }}>{b.condition}</span>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
-                          <div style={{ padding: '8px 12px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7' }}>
-                            <span style={{ fontWeight: 600, color: '#16a34a' }}>If Yes:</span> {b.ifTrue}
-                          </div>
-                          <div style={{ padding: '8px 12px', background: '#f8f9fb', borderRadius: 6, border: '1px solid #e5e7eb' }}>
-                            <span style={{ fontWeight: 600, color: '#64748b' }}>If No:</span> {b.ifFalse}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <button className="btn btn-sm" style={{ marginTop: 4 }}>+ Add Branch</button>
-                  </div>
-
-                  {/* Automatic Exit Conditions */}
-                  <div className="card">
-                    <div className="card-header"><h3>Automatic Exit Conditions</h3><span style={{ fontSize: 11, color: '#64748b' }}>Prospect auto-removed when triggered</span></div>
-                    {[
-                      { label: 'Meeting booked (via calendar link or manual)', enabled: true },
-                      { label: 'Prospect replies to any email', enabled: true },
-                      { label: 'Prospect opts out / unsubscribes', enabled: true },
-                      { label: 'Email hard bounced', enabled: true },
-                      { label: 'Prospect added to another active sequence', enabled: false },
-                      { label: 'Deal stage changes to Closed Won/Lost', enabled: true },
-                      { label: 'All steps completed (sequence finished)', enabled: true },
-                    ].map((c, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginBottom: 6 }}>
-                        <span style={{ fontSize: 12 }}>{c.label}</span>
-                        <div className={`toggle ${c.enabled ? 'on' : ''}`} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Engagement-Based Triggers */}
-                  <div className="card">
-                    <div className="card-header"><h3>Engagement-Based Triggers</h3><span style={{ fontSize: 11, color: '#64748b' }}>Dynamically adjust timing based on signals</span></div>
-                    {[
-                      { trigger: 'Email opened 3+ times', action: 'Accelerate next step — send immediately', enabled: true },
-                      { trigger: 'Link clicked (any)', action: 'Skip delay — execute next step within 1 hour', enabled: true },
-                      { trigger: 'Pricing page visited', action: 'Create high-priority call task + Slack notification', enabled: true },
-                      { trigger: 'Content downloaded', action: 'Insert personalized follow-up referencing content', enabled: false },
-                      { trigger: 'LinkedIn profile viewed by prospect', action: 'Bump priority — send LinkedIn DM next', enabled: false },
-                      { trigger: 'No activity for 7+ days', action: 'Escalate to different channel (email→LinkedIn→call)', enabled: true },
-                    ].map((r, i) => (
-                      <div key={i} className="rule-row">
-                        <span className="trigger">{r.trigger}</span>
-                        <span style={{ color: '#94a3b8', flexShrink: 0 }}>→</span>
-                        <span className="action">{r.action}</span>
-                        <div className={`toggle ${r.enabled ? 'on' : ''}`} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Sequence Type & Automation Config */}
-                  <div className="card">
-                    <div className="card-header"><h3>Sequence Configuration</h3></div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                      <div className="form-group">
-                        <label>Sequence Type</label>
-                        <select defaultValue="outbound">
-                          <option value="outbound">Outbound Prospecting</option>
-                          <option value="inbound">Inbound Lead Follow-up</option>
-                          <option value="nurture">Re-engagement / Nurture</option>
-                          <option value="abx">ABX — Account-Based</option>
-                          <option value="event">Event Follow-up</option>
-                          <option value="high_volume">High-Volume Automated</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label>Prospect Tier</label>
-                        <select defaultValue="all">
-                          <option value="tier1">Tier 1 — High-touch manual</option>
-                          <option value="tier2">Tier 2 — Hybrid (auto + manual)</option>
-                          <option value="tier3">Tier 3 — Fully automated</option>
-                          <option value="all">All tiers</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label>Channel Escalation Path</label>
-                        <select defaultValue="email_linkedin_call">
-                          <option value="email_linkedin_call">Email → LinkedIn → Call</option>
-                          <option value="email_call">Email → Call</option>
-                          <option value="linkedin_email">LinkedIn → Email</option>
-                          <option value="all_parallel">All channels in parallel</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label>Auto-Acceleration</label>
-                        <select defaultValue="on_engagement">
-                          <option value="off">Off — fixed timing</option>
-                          <option value="on_engagement">On engagement — accelerate if signals detected</option>
-                          <option value="on_intent">On intent signal — fast-track high-intent</option>
-                        </select>
-                      </div>
+                  {/* Add step at end */}
+                  {steps.length > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+                      <div style={{ width: 2, height: 16, background: '#e5e7eb' }} />
                     </div>
-                    <div style={{ marginTop: 12, fontSize: 11, color: '#64748b', padding: 12, background: '#f8f9fb', borderRadius: 8 }}>
-                      <strong>ABX Mode:</strong> When enabled for account-based execution, multiple prospects at the same account are coordinated — steps won't overlap, and engagement from any contact at the account contributes to routing decisions for all contacts.
-                    </div>
-                  </div>
+                  )}
+                  <div className="add-step-bar" onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1, condition: 'always' }])}>+ Add Step</div>
 
-                  {/* Basic Automation Rules */}
-                  <div className="card">
-                    <div className="card-header"><h3>Additional Rules</h3></div>
-                    {rules.map(r => (
-                      <div key={r.id} className="rule-row">
-                        <span className="trigger">{r.trigger}</span>
-                        <span style={{ color: '#94a3b8' }}>→</span>
-                        <span className="action">{r.action}</span>
-                        <div className={`toggle ${r.enabled ? 'on' : ''}`} onClick={() => toggleRule(r.id)} />
-                      </div>
-                    ))}
+                  {/* Engagement triggers summary at bottom */}
+                  <div style={{ marginTop: 20, padding: 16, background: '#f8f9fb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 10 }}>Active Engagement Triggers</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 11 }}>
+                      {[
+                        { signal: 'Email opened 3x', action: 'Accelerate → send next step immediately' },
+                        { signal: 'Link clicked', action: 'Skip delay → execute within 1 hour' },
+                        { signal: 'Pricing page visited', action: 'Create urgent call task' },
+                        { signal: 'No engagement 7d', action: 'Escalate to next channel' },
+                      ].map((t, i) => (
+                        <div key={i} style={{ padding: '8px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{t.signal}</span>
+                          <span style={{ color: '#64748b' }}>→ {t.action}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
