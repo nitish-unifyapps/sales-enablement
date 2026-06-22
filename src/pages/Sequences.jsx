@@ -220,72 +220,79 @@ export default function Sequences() {
             {/* Canvas area */}
             <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
               {builderTab === 'steps' && (
-                <div style={{ padding: '40px 24px', minWidth: 'fit-content' }}>
-                  {/* Day columns with dashed lines */}
-                  <div style={{ position: 'relative' }}>
-                    {/* Day markers */}
-                    <div style={{ display: 'flex', position: 'absolute', top: -28, left: 0, right: 0 }}>
-                      {Array.from({ length: maxDay + 2 }, (_, i) => i + 1).map(d => {
-                        const hasSteps = steps.some(s => s.day === d)
-                        if (!hasSteps && d > 1 && d <= maxDay) return null
-                        return <div key={d} style={{ position: 'absolute', left: `${((d - 1) / (maxDay + 1)) * 100}%`, fontSize: 10, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '2px 8px', borderRadius: 8 }}>Day {d}</div>
-                      })}
-                    </div>
+                <div style={{ display: 'flex', alignItems: 'center', minHeight: '100%', padding: '40px 32px', minWidth: 'fit-content' }}>
+                  {/* Flow canvas — vertically centered */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {/* Start node */}
+                    <div style={{ padding: '8px 14px', background: '#16a34a', color: '#fff', borderRadius: 20, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>START</div>
+                    <div style={{ width: 24, height: 2, background: '#16a34a' }} />
 
-                    {/* Horizontal flow */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 12 }}>
-                      {steps.map((step, idx) => {
-                        const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
-                        const isCondition = step.type === 'condition' || step.type === 'ai_branch'
-                        const isSelected = selectedStep?.id === step.id
-                        const showDayLine = idx > 0 && step.day !== steps[idx-1].day
+                    {steps.map((step, idx) => {
+                      const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
+                      const isCondition = step.type === 'condition' || step.type === 'ai_branch'
+                      const isSelected = selectedStep?.id === step.id
+                      const prevDay = idx > 0 ? steps[idx-1].day : 0
+                      const dayGap = step.day - prevDay
 
-                        return (
-                          <div key={step.id} style={{ display: 'flex', alignItems: 'center' }}>
-                            {/* Day separator dashed line */}
-                            {showDayLine && (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 8px', alignSelf: 'stretch' }}>
-                                <div style={{ borderLeft: '2px dashed #d1d5db', flex: 1, minHeight: 40 }} />
-                                <span style={{ fontSize: 9, color: '#94a3b8', whiteSpace: 'nowrap', padding: '2px 4px' }}>+{step.day - steps[idx-1].day}d</span>
-                                <div style={{ borderLeft: '2px dashed #d1d5db', flex: 1, minHeight: 40 }} />
+                      return (
+                        <div key={step.id} style={{ display: 'flex', alignItems: 'center' }}>
+                          {/* Connector with day gap */}
+                          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                            {dayGap > 0 && idx > 0 ? (
+                              <>
+                                <div style={{ width: 40, position: 'relative' }}>
+                                  <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, background: '#d1d5db' }} />
+                                  {/* Day dashed separator */}
+                                  <div style={{ position: 'absolute', top: -30, left: 18, bottom: -30, borderLeft: '1.5px dashed #c7d2fe' }} />
+                                  <div style={{ position: 'absolute', top: -24, left: 8, fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 6px', borderRadius: 8, whiteSpace: 'nowrap' }}>D{step.day}</div>
+                                </div>
+                              </>
+                            ) : idx > 0 ? (
+                              <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
+                            ) : null}
+                          </div>
+
+                          {/* Node */}
+                          {isCondition ? (
+                            /* Diamond/condition node */
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <div onClick={() => setSelectedStep(step)} style={{ width: 120, padding: '14px 12px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 12, cursor: 'pointer', textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 4px rgba(0,0,0,.04)' }}>
+                                <div style={{ fontSize: 9, color: '#6366f1', fontWeight: 700, marginBottom: 3 }}>{st.label.toUpperCase()}</div>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>{step.title}</div>
                               </div>
-                            )}
-
-                            {/* Connector line */}
-                            {idx > 0 && !showDayLine && <div style={{ width: 32, height: 2, background: '#d1d5db' }} />}
-
-                            {/* Step Node */}
-                            <div onClick={() => setSelectedStep(step)} style={{ minWidth: isCondition ? 140 : 130, padding: '12px 14px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isCondition ? 12 : 10, cursor: 'pointer', transition: 'all .15s', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.12)' : '0 1px 3px rgba(0,0,0,.04)', position: 'relative' }}>
-                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>{st.label}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b', marginBottom: 3 }}>{step.title}</div>
-                              {step.desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, maxWidth: 140 }}>{step.desc.substring(0, 50)}</div>}
-                              {step.condition && step.condition !== 'always' && (
-                                <div style={{ marginTop: 6, fontSize: 9, color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: 4, display: 'inline-block' }}>{step.condition.replace(/_/g, ' ')}</div>
-                              )}
-                              {/* Branch indicators for condition/ai_branch */}
-                              {isCondition && step.branches && (
-                                <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                  {Object.entries(step.branches).map(([k, v]) => (
-                                    <span key={k} style={{ fontSize: 9, padding: '2px 5px', borderRadius: 3, background: k === 'yes' || k === 'positive' ? '#dcfce7' : k === 'no' || k === 'silent' ? '#f1f5f9' : '#fef9c3', color: '#475569' }}>{k}: {v}</span>
+                              {/* YES / NO branches */}
+                              {step.branches && (
+                                <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+                                  {Object.entries(step.branches).map(([key, val]) => (
+                                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                      <div style={{ width: 1, height: 12, background: key === 'yes' || key === 'positive' ? '#16a34a' : key === 'no' || key === 'silent' ? '#dc2626' : '#d97706' }} />
+                                      <span style={{ fontSize: 9, fontWeight: 700, color: key === 'yes' || key === 'positive' ? '#16a34a' : key === 'no' || key === 'silent' ? '#dc2626' : '#d97706', textTransform: 'uppercase' }}>{key}</span>
+                                      <div style={{ padding: '5px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', marginTop: 4, whiteSpace: 'nowrap' }}>{val}</div>
+                                    </div>
                                   ))}
                                 </div>
                               )}
                             </div>
-                          </div>
-                        )
-                      })}
+                          ) : (
+                            /* Regular step node */
+                            <div onClick={() => setSelectedStep(step)} style={{ width: 140, padding: '14px 14px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 10, cursor: 'pointer', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 4px rgba(0,0,0,.04)', transition: 'all .15s' }}>
+                              <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.3 }}>{st.label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b', marginBottom: 2 }}>{step.title}</div>
+                              {step.desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4 }}>{step.desc.substring(0, 40)}{step.desc.length > 40 ? '...' : ''}</div>}
+                              {step.condition && step.condition !== 'always' && (
+                                <div style={{ marginTop: 6, fontSize: 9, color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: 4, display: 'inline-block' }}>{step.condition.replace(/_/g, ' ')}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
 
-                      {/* Add node */}
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {steps.length > 0 && <div style={{ width: 32, height: 2, background: '#d1d5db' }} />}
-                        <div onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])} style={{ width: 36, height: 36, borderRadius: 8, border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>+</div>
-                      </div>
+                    {/* End connector + add */}
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
+                      <div onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])} style={{ width: 32, height: 32, borderRadius: '50%', border: '2px dashed #c7d2fe', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, color: '#6366f1', background: '#fff' }}>+</div>
                     </div>
-                  </div>
-
-                  {/* Quick add bar below flow */}
-                  <div style={{ marginTop: 32, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {stepTypes.map(t => <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])}>+ {t.label}</button>)}
                   </div>
                 </div>
               )}
