@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const stageDefaults = [
   { id: 'discovery', name: 'Discovery', winRate: 15, pipeline: 320000, velocity: 14 },
@@ -39,6 +39,12 @@ export default function ScenarioPlanner() {
   const [period, setPeriod] = useState('Q3 2026')
   const [results, setResults] = useState([]) // only populated after Run
   const [isRunning, setIsRunning] = useState(false)
+  const [copilotOpen, setCopilotOpen] = useState(true)
+  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'I can help run simulations. Ask me to adjust variables, compare scenarios, or generate forecasts.\n\nTry: "Run a simulation" or "What if win rate drops 10%?"' }])
+  const [chatInput, setChatInput] = useState('')
+  const chatEndRef = useRef(null)
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
   const active = scenarios[activeIdx] || scenarios[0]
   const quota = 1850000
@@ -99,10 +105,79 @@ export default function ScenarioPlanner() {
     ].sort((a, b) => (b.up + b.down) - (a.up + a.down))
   }
 
+  const handleCopilotChat = () => {
+    if (!chatInput.trim()) return
+    const msg = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }])
+    setChatInput('')
+    const lower = msg.toLowerCase()
+    setTimeout(() => {
+      let reply = ''
+      if (lower.includes('run') || lower.includes('simulate')) {
+        handleRun()
+        reply = 'Running 10,000 simulations... Results appearing now.'
+      } else if (lower.includes('win rate') && lower.includes('drop')) {
+        setScenarios(scenarios.map((sc, i) => i === activeIdx ? { ...sc, stages: sc.stages.map(s => ({ ...s, winRate: Math.max(5, s.winRate - 5) })) } : sc))
+        reply = 'Dropped all win rates by 5%. Hit "Run Simulation" to see impact.'
+      } else if (lower.includes('optimistic') || lower.includes('bull')) {
+        setScenarios(scenarios.map((sc, i) => i === activeIdx ? { ...sc, stages: sc.stages.map(s => ({ ...s, winRate: Math.min(95, s.winRate + 10) })), slippage: 5 } : sc))
+        handleRun()
+        reply = 'Optimistic scenario: +10% win rates, 5% slippage. Running simulation...'
+      } else if (lower.includes('conservative') || lower.includes('bear')) {
+        setScenarios(scenarios.map((sc, i) => i === activeIdx ? { ...sc, stages: sc.stages.map(s => ({ ...s, winRate: Math.max(5, s.winRate - 10) })), slippage: 25 } : sc))
+        handleRun()
+        reply = 'Conservative scenario: -10% win rates, 25% slippage. Running simulation...'
+      } else if (lower.includes('compare') || lower.includes('new scenario')) {
+        addScenario()
+        reply = 'Added a new scenario. Adjust and run to compare.'
+      } else if (lower.includes('slippage')) {
+        const val = parseInt(lower.match(/\d+/)?.[0]) || 20
+        setScenarios(scenarios.map((sc, i) => i === activeIdx ? { ...sc, slippage: val } : sc))
+        reply = `Set slippage to ${val}%.`
+      } else {
+        reply = "Try:\n• \"Run a simulation\"\n• \"Create optimistic scenario\"\n• \"Create conservative scenario\"\n• \"What if win rate drops?\"\n• \"Set slippage to 20%\"\n• \"Add new scenario to compare\""
+      }
+      setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
+    }, 400)
+  }
+
   return (
-    <div>
-      <div className="topbar">
-        <h2>Scenario Planner</h2>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      {/* Copilot */}
+      {copilotOpen && (
+        <div style={{ width: 280, borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff', flexShrink: 0 }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>Simulation Copilot</div>
+            <button onClick={() => setCopilotOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>×</button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {chatMessages.map((m, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+          {chatMessages.length <= 1 && (
+            <div style={{ padding: '0 12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {['Run a simulation', 'Create optimistic scenario', 'Create conservative scenario', 'What if win rate drops 10%?'].map((s, i) => (
+                <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '6px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', cursor: 'pointer' }}>{s}</button>
+              ))}
+            </div>
+          )}
+          <div style={{ padding: '8px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
+            <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCopilotChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
+            <button className="btn btn-primary" onClick={handleCopilotChat} style={{ padding: '8px 10px', fontSize: 11 }}>→</button>
+          </div>
+        </div>
+      )}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div>
+      <div className="topbar" style={{ position: 'static' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {!copilotOpen && <button className="btn btn-sm" onClick={() => setCopilotOpen(true)}>AI</button>}
+          <h2 style={{ fontSize: 15 }}>Scenario Planner</h2>
+        </div>
         <div className="actions">
           <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
             <option>Q3 2026</option><option>Q4 2026</option><option>Q1 2027</option>
@@ -331,6 +406,8 @@ export default function ScenarioPlanner() {
           </div>
         </div>
       </div>
+    </div>
+    </div>
     </div>
   )
 }

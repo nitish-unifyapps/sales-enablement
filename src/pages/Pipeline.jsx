@@ -261,6 +261,96 @@ export default function Pipeline() {
                 )}
               </div>
             </div>
+
+            {/* Activity-to-Revenue Funnel */}
+            <div className="card">
+              <div className="card-header"><h3>Activity → Revenue Funnel</h3></div>
+              <div style={{ display: 'flex', gap: 0 }}>
+                {[
+                  { stage: 'Calls Made', count: 842, color: '#6366f1' },
+                  { stage: 'Conversations', count: 234, color: '#818cf8' },
+                  { stage: 'Meetings Set', count: 68, color: '#0891b2' },
+                  { stage: 'Pipeline Created', count: 42, color: '#d97706' },
+                  { stage: 'Closed Won', count: 10, color: '#16a34a' },
+                ].map((s, i, arr) => {
+                  const pct = (s.count / arr[0].count) * 100
+                  const convRate = i > 0 ? Math.round((s.count / arr[i-1].count) * 100) : 100
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: `${Math.max(30, pct)}%`, minWidth: 40, height: 40, background: s.color, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>{s.count}</div>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: '#475569', textAlign: 'center' }}>{s.stage}</span>
+                      {i > 0 && <span style={{ fontSize: 9, color: '#94a3b8' }}>{convRate}% conv.</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* What's Working + Where Losing — side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div className="card" style={{ borderLeft: '4px solid #16a34a' }}>
+                <div className="card-header"><h3>What's Working</h3></div>
+                {[
+                  { insight: 'LinkedIn → Call combo', detail: '3.2x higher meeting rate than email-only' },
+                  { insight: 'Day 4-5 call timing', detail: '28% connect rate vs 12% on Day 1' },
+                  { insight: 'Personalized case studies', detail: '42% reply rate (2x avg)' },
+                  { insight: 'Enterprise Outbound sequence', detail: 'Best pipeline/rep: $180K generated' },
+                ].map((item, i) => (
+                  <div key={i} style={{ padding: '8px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b' }}>{item.insight}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>{item.detail}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="card" style={{ borderLeft: '4px solid #dc2626' }}>
+                <div className="card-header"><h3>Where We're Losing Deals</h3></div>
+                {[
+                  { insight: 'Proposal → Negotiation drop-off', detail: '45% of proposals stall (avg 14d no activity)' },
+                  { insight: 'Single-threaded deals', detail: '68% of lost deals had only 1 stakeholder' },
+                  { insight: 'No follow-up after day 7', detail: '22% of prospects go cold without touch' },
+                  { insight: 'Budget objection unhandled', detail: '35% of lost deals cite budget — handler sent only 12% of time' },
+                ].map((item, i) => (
+                  <div key={i} style={{ padding: '8px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b' }}>{item.insight}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>{item.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pipeline Attribution */}
+            <div className="card">
+              <div className="card-header"><h3>Pipeline Attribution</h3></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+                {/* By Sequence */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>By Sequence</div>
+                  {[{ name: 'Enterprise Outbound', value: 820000 }, { name: 'Inbound Demo', value: 540000 }, { name: 'Event Follow-up', value: 310000 }, { name: 'Re-engagement', value: 95000 }].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9', fontSize: 12 }}>
+                      <span>{s.name}</span><span style={{ fontWeight: 600 }}>{fmt(s.value)}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* By Channel */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>By Channel</div>
+                  {[{ name: 'Email', value: 680000 }, { name: 'Phone/Call', value: 420000 }, { name: 'LinkedIn', value: 380000 }, { name: 'Event/Referral', value: 285000 }].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9', fontSize: 12 }}>
+                      <span>{s.name}</span><span style={{ fontWeight: 600 }}>{fmt(s.value)}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* By Rep */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>By Rep</div>
+                  {[{ name: 'Sarah Kim', value: 580000 }, { name: 'James Park', value: 520000 }, { name: 'Mike Torres', value: 410000 }, { name: 'Lisa Chen', value: 255000 }].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9', fontSize: 12 }}>
+                      <span>{s.name}</span><span style={{ fontWeight: 600 }}>{fmt(s.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </>
         )}
 
