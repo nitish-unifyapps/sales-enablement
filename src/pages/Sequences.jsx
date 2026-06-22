@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 
 const stepTypes = [
-  { type: 'auto_email', label: 'Automated Email', cat: 'auto' },
+  { type: 'auto_email', label: 'Email', cat: 'auto' },
   { type: 'manual_email', label: 'Manual Email', cat: 'manual' },
-  { type: 'phone', label: 'Phone Call', cat: 'manual' },
-  { type: 'linkedin_connect', label: 'LinkedIn Connect', cat: 'auto' },
-  { type: 'linkedin_msg', label: 'LinkedIn Message', cat: 'auto' },
-  { type: 'task', label: 'Generic Task', cat: 'manual' },
+  { type: 'phone', label: 'Call', cat: 'manual' },
+  { type: 'linkedin_connect', label: 'LinkedIn', cat: 'auto' },
+  { type: 'linkedin_msg', label: 'LinkedIn DM', cat: 'auto' },
+  { type: 'task', label: 'Task', cat: 'manual' },
   { type: 'ai_branch', label: 'AI Branch', cat: 'auto' },
+  { type: 'condition', label: 'Condition', cat: 'auto' },
 ]
 
 const initialSequences = [
@@ -19,77 +20,49 @@ const initialSequences = [
 ]
 
 const initialSteps = [
-  { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized intro referencing {{company_industry}}', day: 1 },
-  { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connection', desc: 'Connect with personalized note', day: 1 },
-  { id: 3, type: 'auto_email', title: 'Follow-up #1', desc: 'Value-add content if no reply', day: 3 },
-  { id: 4, type: 'phone', title: 'Discovery Call', desc: 'Use discovery script. Voicemail if no answer.', day: 4 },
-  { id: 5, type: 'linkedin_msg', title: 'LinkedIn Message', desc: 'Reference email + ask for meeting', day: 5 },
-  { id: 6, type: 'ai_branch', title: 'AI: Sentiment Check', desc: 'Positive → meeting. Objection → handler. Silent → continue.', day: 6 },
-  { id: 7, type: 'auto_email', title: 'Case Study Email', desc: 'Send relevant case study', day: 8 },
-  { id: 8, type: 'phone', title: 'Call #2 + Voicemail', desc: 'Mention LinkedIn, drop voicemail', day: 10 },
-  { id: 9, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — create urgency', day: 12 },
-]
-
-const initialRules = [
-  { id: 1, trigger: 'Prospect replies', action: 'Pause sequence', enabled: true },
-  { id: 2, trigger: 'Meeting booked', action: 'Finish sequence (success)', enabled: true },
-  { id: 3, trigger: 'Email bounced', action: 'Remove & flag', enabled: true },
-  { id: 4, trigger: 'Out-of-office detected', action: 'Pause 5 days then resume', enabled: true },
-  { id: 5, trigger: 'LinkedIn accepted', action: 'Skip to LinkedIn message', enabled: true },
+  { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized intro with {{company_industry}}', day: 1, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
+  { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Personalized connection note', day: 1, condition: 'always', sendWindow: '9am-5pm', priority: 'normal' },
+  { id: 3, type: 'condition', title: 'Email Opened?', desc: 'Check if intro email was opened', day: 2, condition: 'if_opened', branches: { yes: 'Route to call', no: 'Send follow-up email' } },
+  { id: 4, type: 'auto_email', title: 'Follow-up #1', desc: 'Value-add content if no reply', day: 3, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'normal' },
+  { id: 5, type: 'phone', title: 'Discovery Call', desc: 'Call with discovery script', day: 4, condition: 'if_opened', sendWindow: '9am-12pm', priority: 'high' },
+  { id: 6, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Reference email + ask for meeting', day: 5, condition: 'if_connected', sendWindow: '9am-5pm', priority: 'normal' },
+  { id: 7, type: 'ai_branch', title: 'AI: Evaluate', desc: 'Sentiment analysis + routing', day: 6, condition: 'always', branches: { positive: 'Book meeting', objection: 'Handle objection', silent: 'Continue sequence' } },
+  { id: 8, type: 'auto_email', title: 'Case Study', desc: 'Industry-relevant social proof', day: 8, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
+  { id: 9, type: 'auto_email', title: 'Breakup', desc: 'Final touch — close the loop', day: 12, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'low' },
 ]
 
 const initialProspects = [
   { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP Sales', state: 'active', currentStep: 3, replied: false, sequenceId: 1 },
   { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', state: 'active', currentStep: 5, replied: false, sequenceId: 1 },
-  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director Ops', state: 'finished_replied', currentStep: 2, replied: true, sequenceId: 2 },
-  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', state: 'paused', currentStep: 4, replied: false, sequenceId: 1 },
+  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director', state: 'finished_replied', currentStep: 2, replied: true, sequenceId: 2 },
+  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head Product', state: 'paused', currentStep: 4, replied: false, sequenceId: 1 },
   { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', state: 'active', currentStep: 1, replied: false, sequenceId: 3 },
-  { id: 6, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', state: 'active', currentStep: 7, replied: false, sequenceId: 2 },
-  { id: 7, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Dir Sales', state: 'active', currentStep: 6, replied: false, sequenceId: 3 },
 ]
 
 const copilotContexts = {
-  steps: {
-    greeting: "I'm ready to help build your sequence steps. I can add, remove, or modify steps. What would you like to do?",
-    starters: ['Add an automated email on day 1', 'Add a LinkedIn step after day 3', 'Generate a complete 7-step sequence', 'Make the sequence more aggressive', 'Add an AI branch after step 2', 'Remove the last step']
-  },
-  rules: {
-    greeting: "Let's configure automation rules. I can add triggers and actions that fire automatically based on prospect behavior.",
-    starters: ['Add a rule: pause on reply', 'Add a rule: if email opened 3x, create call task', 'Add a rule: if no engagement after 7 days, move to nurture', 'Disable all rules', 'Show me best practice rules for cold outbound']
-  },
-  prospects: {
-    greeting: "I can help manage prospects in this sequence. I can add prospects, remove inactive ones, or suggest which prospects need attention.",
-    starters: ['Add a new prospect to this sequence', 'Remove all bounced prospects', 'Which prospects are stuck?', 'Show me prospects who haven\'t been contacted in 7 days']
-  },
-  settings: {
-    greeting: "I can help configure sequence settings — send windows, throttles, timezone handling, and automation behavior.",
-    starters: ['Set send window to 9am-5pm', 'Limit to 100 emails per day', 'Enable pause on out-of-office', 'Change to prospect timezone sending']
-  },
-  create: {
-    greeting: "Let's create a new sequence! I'll guide you through it. First, what type of sequence are you building?\n\n1. Cold outbound prospecting\n2. Inbound follow-up\n3. Re-engagement / Nurture\n4. Event follow-up\n\nOr just describe your goal and I'll build it for you.",
-    starters: ['Create a cold outbound sequence for CTOs', 'Build an inbound demo follow-up', 'I need a re-engagement sequence for lost deals', 'Create a post-event follow-up for conference attendees']
-  }
+  steps: { greeting: "I can help build your sequence flow. Ask me to add steps, create branches, or generate a full sequence.", starters: ['Generate a 7-step outbound sequence', 'Add an email step on day 3', 'Add a condition: if email opened', 'Make the sequence more aggressive'] },
+  prospects: { greeting: "I can help manage prospects. Add, remove, or check which ones need attention.", starters: ['Which prospects are stuck?', 'Remove all bounced', 'Resume paused prospects'] },
+  settings: { greeting: "I can configure sequence settings — timing, throttles, exit conditions.", starters: ['Set send window to 9am-5pm', 'Enable pause on OOO', 'Limit to 100 emails/day'] },
+  create: { greeting: "Let's build a new sequence! Describe your goal and I'll generate the flow.\n\nOr tell me: outbound, inbound, nurture, or event?", starters: ['Cold outbound for CTOs', 'Inbound demo follow-up', 'Re-engagement for lost deals', 'Post-event nurture'] },
 }
 
 
 export default function Sequences() {
   const [view, setView] = useState('list')
   const [listTab, setListTab] = useState('sequences')
-  const [sequences, setSequences] = useState(initialSequences)
+  const [sequences] = useState(initialSequences)
   const [steps, setSteps] = useState(initialSteps)
-  const [rules, setRules] = useState(initialRules)
   const [prospects, setProspects] = useState(initialProspects)
   const [selectedSeq, setSelectedSeq] = useState(null)
   const [builderTab, setBuilderTab] = useState('steps')
+  const [selectedStep, setSelectedStep] = useState(null) // right drawer
+  const [copilotOpen, setCopilotOpen] = useState(true)
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
-  const [pendingStep, setPendingStep] = useState(null) // for multi-turn step creation
-  const [editingStep, setEditingStep] = useState(null)
+  const [pendingStep, setPendingStep] = useState(null)
   const chatEndRef = useRef(null)
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
-
-  // Reset copilot when tab changes
   useEffect(() => {
     const ctx = copilotContexts[builderTab] || copilotContexts.steps
     setChatMessages([{ role: 'ai', text: ctx.greeting }])
@@ -97,8 +70,8 @@ export default function Sequences() {
   }, [builderTab])
 
   const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('steps') }
-  const openCreate = () => { setView('builder'); setSelectedSeq(null); setBuilderTab('steps'); setSteps([]); setChatMessages([{ role: 'ai', text: copilotContexts.create.greeting }]) }
-  const backToList = () => { setSelectedSeq(null); setView('list') }
+  const openCreate = () => { setView('builder'); setSelectedSeq(null); setSteps([]); setChatMessages([{ role: 'ai', text: copilotContexts.create.greeting }]) }
+  const backToList = () => { setSelectedSeq(null); setView('list'); setSelectedStep(null) }
 
   const handleChat = () => {
     if (!chatInput.trim()) return
@@ -106,126 +79,54 @@ export default function Sequences() {
     setChatMessages(prev => [...prev, { role: 'user', text: msg }])
     setChatInput('')
     const lower = msg.toLowerCase()
-
     setTimeout(() => {
       let reply = ''
-
-      // If we're in a pending step creation flow
       if (pendingStep) {
-        if (pendingStep.awaiting === 'day') {
-          const day = parseInt(msg) || (steps.length > 0 ? steps[steps.length - 1].day + 2 : 1)
-          const newStep = { ...pendingStep.step, day, id: Date.now() }
-          setSteps(prev => [...prev, newStep])
-          reply = `Added "${newStep.title}" on Day ${day}. The step is: ${newStep.desc}\n\nWant to add another step or modify this one?`
+        if (pendingStep.awaiting === 'desc') {
+          setPendingStep({ ...pendingStep, step: { ...pendingStep.step, desc: msg }, awaiting: 'day' })
+          reply = `Got it. What day? (last step is Day ${steps.length > 0 ? steps[steps.length-1].day : 0})`
+        } else if (pendingStep.awaiting === 'day') {
+          const day = parseInt(msg) || (steps.length > 0 ? steps[steps.length-1].day + 2 : 1)
+          setSteps(prev => [...prev, { ...pendingStep.step, day, id: Date.now(), condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])
+          reply = `Added "${pendingStep.step.title}" on Day ${day}.`
           setPendingStep(null)
-        } else if (pendingStep.awaiting === 'desc') {
-          const updated = { ...pendingStep.step, desc: msg }
-          setPendingStep({ ...pendingStep, step: updated, awaiting: 'day' })
-          reply = `Got it. What day should this step execute? (Current last step is Day ${steps.length > 0 ? steps[steps.length - 1].day : 0})`
         }
-        setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
-        return
+      } else if (lower.includes('generate') || lower.includes('create') && lower.includes('sequence')) {
+        const persona = lower.includes('cto') ? 'CTOs' : lower.includes('vp') ? 'VPs' : 'prospects'
+        setSteps([
+          { id: Date.now(), type: 'auto_email', title: 'Intro Email', desc: `Personalized cold intro for ${persona}`, day: 1, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
+          { id: Date.now()+1, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection with personalized note', day: 1, condition: 'always', sendWindow: '9am-5pm', priority: 'normal' },
+          { id: Date.now()+2, type: 'condition', title: 'Email Opened?', desc: 'Check engagement signal', day: 2, condition: 'if_opened', branches: { yes: 'Call', no: 'Follow-up email' } },
+          { id: Date.now()+3, type: 'auto_email', title: 'Follow-up', desc: 'Value-add if no reply', day: 3, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'normal' },
+          { id: Date.now()+4, type: 'phone', title: 'Call', desc: 'Discovery call', day: 5, condition: 'if_opened', sendWindow: '9am-12pm', priority: 'high' },
+          { id: Date.now()+5, type: 'ai_branch', title: 'AI Evaluate', desc: 'Route by sentiment', day: 7, condition: 'always', branches: { positive: 'Meeting', objection: 'Handler', silent: 'Continue' } },
+          { id: Date.now()+6, type: 'auto_email', title: 'Breakup', desc: 'Final touch', day: 10, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'low' },
+        ])
+        reply = `Generated 7-step flow for ${persona} over 10 days. Click any node to customize.`
+      } else if (lower.includes('add') && (lower.includes('email') || lower.includes('call') || lower.includes('linkedin') || lower.includes('task') || lower.includes('condition') || lower.includes('branch'))) {
+        const type = lower.includes('call') || lower.includes('phone') ? 'phone' : lower.includes('linkedin') ? 'linkedin_msg' : lower.includes('condition') ? 'condition' : lower.includes('branch') || lower.includes('ai') ? 'ai_branch' : lower.includes('task') ? 'task' : 'auto_email'
+        const label = stepTypes.find(t => t.type === type)?.label || 'Step'
+        setPendingStep({ step: { type, title: label }, awaiting: 'desc' })
+        reply = `Adding ${label}. What should it do? Describe briefly:`
+      } else if (lower.includes('aggressive') || lower.includes('shorten')) {
+        setSteps(prev => prev.map(s => ({ ...s, day: Math.max(1, Math.ceil(s.day * 0.6)) })))
+        reply = 'Compressed timing by ~40%.'
+      } else if (lower.includes('remove') && lower.includes('last')) {
+        setSteps(prev => prev.slice(0, -1))
+        reply = 'Removed last step.'
+      } else {
+        reply = "Try:\n• \"Generate a 7-step sequence\"\n• \"Add an email step\"\n• \"Add a condition\"\n• \"Make it aggressive\""
       }
-
-      // STEPS tab handlers
-      if (builderTab === 'steps' || !selectedSeq) {
-        if (lower.includes('add') && (lower.includes('email') || lower.includes('mail'))) {
-          setPendingStep({ step: { type: 'auto_email', title: 'Email Step' }, awaiting: 'desc' })
-          reply = "I'll add an email step. What should the email be about? (e.g. \"Personalized intro mentioning their recent funding round\")"
-        } else if (lower.includes('add') && lower.includes('linkedin')) {
-          setPendingStep({ step: { type: lower.includes('connect') ? 'linkedin_connect' : 'linkedin_msg', title: lower.includes('connect') ? 'LinkedIn Connect' : 'LinkedIn Message' }, awaiting: 'desc' })
-          reply = "Adding a LinkedIn step. What should the message/note say? Describe the content:"
-        } else if (lower.includes('add') && (lower.includes('call') || lower.includes('phone'))) {
-          setPendingStep({ step: { type: 'phone', title: 'Phone Call' }, awaiting: 'desc' })
-          reply = "Adding a phone call step. What's the call objective? (e.g. \"Discovery call — identify pain points\")"
-        } else if (lower.includes('add') && lower.includes('ai')) {
-          setPendingStep({ step: { type: 'ai_branch', title: 'AI Decision Point' }, awaiting: 'desc' })
-          reply = "Adding an AI branch. What should the AI evaluate? (e.g. \"Check sentiment: positive → meeting, objection → handler, silence → continue\")"
-        } else if (lower.includes('add') && lower.includes('task')) {
-          setPendingStep({ step: { type: 'task', title: 'Manual Task' }, awaiting: 'desc' })
-          reply = "Adding a manual task. What should the rep do? Describe the task:"
-        } else if (lower.includes('generate') || (lower.includes('create') && lower.includes('sequence'))) {
-          const persona = lower.includes('cto') ? 'CTOs' : lower.includes('vp') ? 'VPs' : lower.includes('cmo') ? 'CMOs' : 'decision-makers'
-          setSteps([
-            { id: Date.now(), type: 'auto_email', title: 'Personalized Intro', desc: `Cold intro to ${persona} referencing trigger event`, day: 1 },
-            { id: Date.now()+1, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with personalized note', day: 1 },
-            { id: Date.now()+2, type: 'auto_email', title: 'Value-Add Follow-up', desc: 'Share relevant insight if no reply', day: 3 },
-            { id: Date.now()+3, type: 'phone', title: 'Discovery Call', desc: 'Call with persona-specific talk track', day: 5 },
-            { id: Date.now()+4, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Casual message referencing previous touches', day: 6 },
-            { id: Date.now()+5, type: 'ai_branch', title: 'AI: Evaluate Engagement', desc: 'Route based on engagement signals', day: 7 },
-            { id: Date.now()+6, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — close loop with urgency', day: 10 },
-          ])
-          reply = `Generated a 7-step multi-channel sequence targeting ${persona}!\n\n✓ Day 1: Email + LinkedIn Connect\n✓ Day 3: Follow-up email\n✓ Day 5: Phone call\n✓ Day 6: LinkedIn DM\n✓ Day 7: AI evaluation\n✓ Day 10: Breakup\n\nWant me to adjust timing, add more steps, or change anything?`
-        } else if (lower.includes('aggressive') || lower.includes('shorten')) {
-          setSteps(prev => prev.map(s => ({ ...s, day: Math.max(1, Math.ceil(s.day * 0.6)) })))
-          reply = 'Done! Compressed all delays by ~40%. The cadence is now more aggressive.'
-        } else if (lower.includes('remove') && lower.includes('last')) {
-          setSteps(prev => prev.slice(0, -1))
-          reply = 'Removed the last step.'
-        } else {
-          reply = "I can help! Tell me what to do:\n• \"Add an email step\" — I'll ask for details\n• \"Add a LinkedIn connect\"\n• \"Add a phone call\"\n• \"Add an AI branch\"\n• \"Generate a complete sequence\"\n• \"Make it more aggressive\"\n• \"Remove last step\""
-        }
-      }
-      // RULES tab handlers
-      else if (builderTab === 'rules') {
-        if (lower.includes('add') && lower.includes('rule')) {
-          let trigger = '', action = ''
-          if (lower.includes('reply')) { trigger = 'Prospect replies'; action = 'Pause sequence' }
-          else if (lower.includes('open') && lower.includes('3')) { trigger = 'Email opened 3+ times'; action = 'Create urgent call task' }
-          else if (lower.includes('no engagement') || lower.includes('7 day')) { trigger = 'No engagement after 7 days'; action = 'Move to nurture cadence' }
-          else if (lower.includes('bounce')) { trigger = 'Email bounced'; action = 'Remove and flag' }
-          else { trigger = 'Custom trigger'; action = 'Custom action' }
-          setRules(prev => [...prev, { id: Date.now(), trigger, action, enabled: true }])
-          reply = `Added rule: "${trigger}" → "${action}". It's enabled by default.`
-        } else if (lower.includes('disable all')) {
-          setRules(prev => prev.map(r => ({ ...r, enabled: false })))
-          reply = 'All rules disabled.'
-        } else if (lower.includes('best practice')) {
-          reply = "Best practice rules for cold outbound:\n• Pause on reply (always on)\n• Finish on meeting booked\n• Remove on hard bounce\n• Pause 5d on out-of-office\n• Skip LinkedIn if email opened 3x\n\nWant me to add any of these?"
-        } else {
-          reply = "I can manage rules. Try:\n• \"Add a rule: pause on reply\"\n• \"Add a rule: if opened 3x, create call task\"\n• \"Disable all rules\"\n• \"Show best practice rules\""
-        }
-      }
-      // PROSPECTS tab handlers
-      else if (builderTab === 'prospects') {
-        if (lower.includes('add') && lower.includes('prospect')) {
-          reply = "To add a prospect, I need:\n1. Name\n2. Company\n3. Title\n\nOr you can paste an email and I'll look up the details. What's the prospect info?"
-        } else if (lower.includes('remove') && lower.includes('bounced')) {
-          setProspects(prev => prev.filter(p => p.state !== 'bounced'))
-          reply = 'Removed all bounced prospects from this sequence.'
-        } else if (lower.includes('stuck') || lower.includes('attention')) {
-          const stuck = prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'paused')
-          reply = stuck.length > 0 ? `${stuck.length} prospects are paused:\n${stuck.map(p => `• ${p.name} (${p.company}) — Step ${p.currentStep}`).join('\n')}\n\nWant me to resume them?` : 'No stuck prospects! Everyone is progressing normally.'
-        } else if (lower.includes('resume')) {
-          setProspects(prev => prev.map(p => p.state === 'paused' && p.sequenceId === selectedSeq?.id ? { ...p, state: 'active' } : p))
-          reply = 'Resumed all paused prospects in this sequence.'
-        } else {
-          reply = "I can help with prospects:\n• \"Add a new prospect\"\n• \"Remove all bounced prospects\"\n• \"Which prospects are stuck?\"\n• \"Resume paused prospects\""
-        }
-      }
-      // SETTINGS tab handlers
-      else if (builderTab === 'settings') {
-        if (lower.includes('send window') || lower.includes('9') && lower.includes('5')) {
-          reply = 'Updated send window to 9:00 AM — 5:00 PM in prospect timezone.'
-        } else if (lower.includes('throttle') || lower.includes('100') || lower.includes('limit')) {
-          reply = 'Email throttle updated to 100 emails/day. LinkedIn actions capped at 50/day.'
-        } else if (lower.includes('timezone')) {
-          reply = 'Switched to prospect timezone sending. Emails will deliver based on each prospect\'s local time.'
-        } else {
-          reply = "I can adjust settings:\n• \"Set send window to 9am-5pm\"\n• \"Limit to 100 emails per day\"\n• \"Use prospect timezone\"\n• \"Enable pause on out-of-office\""
-        }
-      }
-
       setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
-    }, 500)
+    }, 400)
   }
 
-  const deleteStep = (id) => setSteps(steps.filter(s => s.id !== id))
-  const toggleRule = (id) => setRules(rules.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r))
+  const deleteStep = (id) => { setSteps(steps.filter(s => s.id !== id)); if (selectedStep?.id === id) setSelectedStep(null) }
+  const updateStep = (field, value) => { const updated = { ...selectedStep, [field]: value }; setSelectedStep(updated); setSteps(steps.map(s => s.id === updated.id ? updated : s)) }
   const removeProspect = (id) => setProspects(prospects.filter(p => p.id !== id))
   const changeProspectSeq = (pid, sid) => setProspects(prospects.map(p => p.id === pid ? { ...p, sequenceId: parseInt(sid), currentStep: 1 } : p))
-
-  const currentContext = selectedSeq ? (copilotContexts[builderTab] || copilotContexts.steps) : copilotContexts.create
+  const currentCtx = copilotContexts[builderTab] || copilotContexts.steps
+  const maxDay = steps.length > 0 ? Math.max(...steps.map(s => s.day)) : 1
 
 
   return (
@@ -233,10 +134,7 @@ export default function Sequences() {
       {/* LIST VIEW */}
       {view === 'list' && (
         <>
-          <div className="topbar">
-            <h2>Sequences</h2>
-            <div className="actions"><button className="btn btn-primary" onClick={openCreate}>+ Create Sequence</button></div>
-          </div>
+          <div className="topbar"><h2>Sequences</h2><div className="actions"><button className="btn btn-primary" onClick={openCreate}>+ Create Sequence</button></div></div>
           <div style={{ padding: 24 }}>
             <div className="tabs">
               <button className={listTab === 'sequences' ? 'active' : ''} onClick={() => setListTab('sequences')}>Sequences ({sequences.length})</button>
@@ -244,42 +142,27 @@ export default function Sequences() {
             </div>
             {listTab === 'sequences' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table>
-                  <thead><tr><th>Name</th><th>Status</th><th>Score</th><th>Prospects</th><th>Contacted</th><th>Opened</th><th>Replied</th><th>Last Run</th><th>Owner</th></tr></thead>
-                  <tbody>
-                    {sequences.map(seq => (
-                      <tr key={seq.id} style={{ cursor: 'pointer' }} onClick={() => openSequence(seq)}>
-                        <td><strong>{seq.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{seq.steps} steps • {seq.days}d • {seq.tags.join(', ')}</div></td>
-                        <td><span className={`badge ${seq.active ? 'badge-green' : 'badge-gray'}`}>{seq.active ? 'Active' : 'Paused'}</span></td>
-                        <td style={{ color: seq.score >= 70 ? '#16a34a' : seq.score >= 40 ? '#d97706' : '#dc2626', fontWeight: 700 }}>{seq.score}</td>
-                        <td style={{ fontSize: 12 }}>{seq.prospects.active} active</td>
-                        <td>{seq.contacted.toLocaleString()}</td>
-                        <td>{seq.opened}%</td>
-                        <td style={{ fontWeight: 600 }}>{seq.replied}%</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{seq.lastRun}</td>
-                        <td><div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700 }}>{seq.owner}</div></td>
-                      </tr>
-                    ))}
-                  </tbody>
+                <table><thead><tr><th>Name</th><th>Status</th><th>Score</th><th>Prospects</th><th>Opened</th><th>Replied</th><th>Last Run</th></tr></thead>
+                  <tbody>{sequences.map(seq => (
+                    <tr key={seq.id} style={{ cursor: 'pointer' }} onClick={() => openSequence(seq)}>
+                      <td><strong>{seq.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{seq.steps} steps • {seq.days}d</div></td>
+                      <td><span className={`badge ${seq.active ? 'badge-green' : 'badge-gray'}`}>{seq.active ? 'Active' : 'Paused'}</span></td>
+                      <td style={{ fontWeight: 700, color: seq.score >= 70 ? '#16a34a' : seq.score >= 40 ? '#d97706' : '#dc2626' }}>{seq.score}</td>
+                      <td>{seq.prospects.active}</td><td>{seq.opened}%</td><td style={{ fontWeight: 600 }}>{seq.replied}%</td>
+                      <td style={{ fontSize: 12, color: '#64748b' }}>{seq.lastRun}</td>
+                    </tr>))}</tbody>
                 </table>
               </div>
             )}
             {listTab === 'prospects' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table>
-                  <thead><tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Step</th><th></th></tr></thead>
-                  <tbody>
-                    {prospects.map(p => (
-                      <tr key={p.id}>
-                        <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div></td>
-                        <td>{p.company}</td>
-                        <td><select value={p.sequenceId} onChange={e => changeProspectSeq(p.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 6px', fontSize: 11 }}>{sequences.map(s => <option key={s.id} value={s.id}>{s.name.substring(0, 25)}</option>)}</select></td>
-                        <td><span className={`badge ${p.state === 'active' ? 'badge-green' : p.state.includes('finished') ? 'badge-blue' : 'badge-yellow'}`}>{p.state.replace('_', ' ')}</span></td>
-                        <td>{p.currentStep}</td>
-                        <td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
+                <table><thead><tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Step</th><th></th></tr></thead>
+                  <tbody>{prospects.map(p => (
+                    <tr key={p.id}><td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div></td><td>{p.company}</td>
+                      <td><select value={p.sequenceId} onChange={e => changeProspectSeq(p.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 6px', fontSize: 11 }}>{sequences.map(s => <option key={s.id} value={s.id}>{s.name.substring(0,25)}</option>)}</select></td>
+                      <td><span className={`badge ${p.state === 'active' ? 'badge-green' : 'badge-yellow'}`}>{p.state.replace('_',' ')}</span></td>
+                      <td>{p.currentStep}</td><td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
+                    </tr>))}</tbody>
                 </table>
               </div>
             )}
@@ -290,348 +173,198 @@ export default function Sequences() {
 
       {/* BUILDER VIEW */}
       {view === 'builder' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', height: '100vh' }}>
-          {/* LEFT: AI Copilot */}
-          <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-            <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Copilot — {builderTab.charAt(0).toUpperCase() + builderTab.slice(1)}</div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{selectedSeq ? 'Editing sequence' : 'Creating new sequence'}</div>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+          {/* LEFT: Collapsible Copilot */}
+          <div style={{ width: copilotOpen ? 300 : 0, overflow: 'hidden', transition: 'width .2s', borderRight: copilotOpen ? '1px solid #e5e7eb' : 'none', display: 'flex', flexDirection: 'column', background: '#fff', flexShrink: 0 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div><div style={{ fontSize: 13, fontWeight: 700 }}>Copilot</div><div style={{ fontSize: 10, color: '#64748b' }}>{builderTab}</div></div>
+              <button onClick={() => setCopilotOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>×</button>
             </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {chatMessages.map((m, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                    {m.text}
-                  </div>
+                  <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
-
-            {/* Conversation starters */}
             {chatMessages.length <= 1 && (
-              <div style={{ padding: '0 14px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>Suggestions</div>
-                {currentContext.starters.slice(0, 4).map((s, i) => (
-                  <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '7px 11px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 11, color: '#475569', cursor: 'pointer' }}>{s}</button>
+              <div style={{ padding: '0 12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {currentCtx.starters.map((s, i) => (
+                  <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '6px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', cursor: 'pointer' }}>{s}</button>
                 ))}
               </div>
             )}
-
-            <div style={{ padding: '10px 14px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
-              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
-              <button className="btn btn-primary" onClick={handleChat} style={{ padding: '9px 12px', fontSize: 12 }}>Send</button>
+            <div style={{ padding: '8px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
+              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
+              <button className="btn btn-primary" onClick={handleChat} style={{ padding: '8px 10px', fontSize: 11 }}>→</button>
             </div>
           </div>
 
-          {/* RIGHT: Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className="topbar" style={{ position: 'static' }}>
+          {/* CENTER: Canvas */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Top bar */}
+            <div style={{ height: 50, borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between', background: '#fff', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {!copilotOpen && <button className="btn btn-sm" onClick={() => setCopilotOpen(true)} title="Open Copilot">AI</button>}
                 <button className="btn btn-sm" onClick={backToList}>←</button>
-                <h2 style={{ fontSize: 14 }}>{selectedSeq?.name || 'New Sequence'}</h2>
+                <span style={{ fontSize: 14, fontWeight: 700 }}>{selectedSeq?.name || 'New Sequence'}</span>
               </div>
               <div className="view-toggle">
-                <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Flow Builder</button>
+                <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Flow</button>
                 <button className={builderTab === 'prospects' ? 'active' : ''} onClick={() => setBuilderTab('prospects')}>Prospects</button>
                 <button className={builderTab === 'settings' ? 'active' : ''} onClick={() => setBuilderTab('settings')}>Settings</button>
               </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-              {/* FLOW BUILDER - unified steps + rules inline */}
+            {/* Canvas area */}
+            <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
               {builderTab === 'steps' && (
-                <>
-                  {/* Toolbar */}
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', marginRight: 4 }}>Add:</span>
-                    {stepTypes.map(t => (
-                      <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1, condition: 'always', exitOn: '' }])}>+ {t.label}</button>
-                    ))}
-                  </div>
-
-                  {/* Exit Conditions Bar */}
-                  <div style={{ padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', fontSize: 11 }}>
-                    <span style={{ fontWeight: 700, color: '#475569' }}>Auto-exit on:</span>
-                    {['Reply received', 'Meeting booked', 'Opted out', 'Hard bounce', 'Deal closed'].map((e, i) => (
-                      <span key={i} style={{ padding: '3px 8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, color: '#16a34a', fontWeight: 500 }}>✓ {e}</span>
-                    ))}
-                  </div>
-
-                  {steps.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '50px 20px', color: '#94a3b8', fontSize: 13 }}>
-                      No steps yet. Use the buttons above or ask the copilot to build your sequence.
+                <div style={{ padding: '40px 24px', minWidth: 'fit-content' }}>
+                  {/* Day columns with dashed lines */}
+                  <div style={{ position: 'relative' }}>
+                    {/* Day markers */}
+                    <div style={{ display: 'flex', position: 'absolute', top: -28, left: 0, right: 0 }}>
+                      {Array.from({ length: maxDay + 2 }, (_, i) => i + 1).map(d => {
+                        const hasSteps = steps.some(s => s.day === d)
+                        if (!hasSteps && d > 1 && d <= maxDay) return null
+                        return <div key={d} style={{ position: 'absolute', left: `${((d - 1) / (maxDay + 1)) * 100}%`, fontSize: 10, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '2px 8px', borderRadius: 8 }}>Day {d}</div>
+                      })}
                     </div>
-                  )}
 
-                  {/* Step Flow */}
-                  {steps.map((step, idx) => {
-                    const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
-                    const isNewDay = idx === 0 || step.day !== steps[idx - 1]?.day
-                    return (
-                      <div key={step.id}>
-                        {/* Day separator with wait indicator */}
-                        {isNewDay && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 6px' }}>
-                            <div style={{ height: 1, flex: 1, background: '#e5e7eb' }} />
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '3px 10px', borderRadius: 10 }}>
-                              {idx === 0 ? 'START — Day 1' : `Wait ${step.day - (steps[idx-1]?.day || 0)}d → Day ${step.day}`}
-                            </span>
-                            <div style={{ height: 1, flex: 1, background: '#e5e7eb' }} />
-                          </div>
-                        )}
+                    {/* Horizontal flow */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 12 }}>
+                      {steps.map((step, idx) => {
+                        const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
+                        const isCondition = step.type === 'condition' || step.type === 'ai_branch'
+                        const isSelected = selectedStep?.id === step.id
+                        const showDayLine = idx > 0 && step.day !== steps[idx-1].day
 
-                        {/* Step Card */}
-                        <div className="seq-step" style={{ flexDirection: 'column', gap: 0, padding: 0, overflow: 'hidden' }}>
-                          {/* Step header */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px' }}>
-                            <div style={{ width: 24, height: 24, borderRadius: 6, border: '2px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{idx + 1}</div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {step.title}
-                                <span className={`badge ${st.cat === 'auto' ? 'badge-blue' : 'badge-gray'}`} style={{ fontSize: 9 }}>{st.cat}</span>
+                        return (
+                          <div key={step.id} style={{ display: 'flex', alignItems: 'center' }}>
+                            {/* Day separator dashed line */}
+                            {showDayLine && (
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 8px', alignSelf: 'stretch' }}>
+                                <div style={{ borderLeft: '2px dashed #d1d5db', flex: 1, minHeight: 40 }} />
+                                <span style={{ fontSize: 9, color: '#94a3b8', whiteSpace: 'nowrap', padding: '2px 4px' }}>+{step.day - steps[idx-1].day}d</span>
+                                <div style={{ borderLeft: '2px dashed #d1d5db', flex: 1, minHeight: 40 }} />
                               </div>
-                              {step.desc && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{step.desc}</div>}
-                            </div>
-                            <div className="step-actions">
-                              <button onClick={() => setEditingStep(step)} title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                              <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                            )}
+
+                            {/* Connector line */}
+                            {idx > 0 && !showDayLine && <div style={{ width: 32, height: 2, background: '#d1d5db' }} />}
+
+                            {/* Step Node */}
+                            <div onClick={() => setSelectedStep(step)} style={{ minWidth: isCondition ? 140 : 130, padding: '12px 14px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isCondition ? 12 : 10, cursor: 'pointer', transition: 'all .15s', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.12)' : '0 1px 3px rgba(0,0,0,.04)', position: 'relative' }}>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>{st.label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b', marginBottom: 3 }}>{step.title}</div>
+                              {step.desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, maxWidth: 140 }}>{step.desc.substring(0, 50)}</div>}
+                              {step.condition && step.condition !== 'always' && (
+                                <div style={{ marginTop: 6, fontSize: 9, color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: 4, display: 'inline-block' }}>{step.condition.replace(/_/g, ' ')}</div>
+                              )}
+                              {/* Branch indicators for condition/ai_branch */}
+                              {isCondition && step.branches && (
+                                <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                  {Object.entries(step.branches).map(([k, v]) => (
+                                    <span key={k} style={{ fontSize: 9, padding: '2px 5px', borderRadius: 3, background: k === 'yes' || k === 'positive' ? '#dcfce7' : k === 'no' || k === 'silent' ? '#f1f5f9' : '#fef9c3', color: '#475569' }}>{k}: {v}</span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
+                        )
+                      })}
 
-                          {/* Inline condition/branching */}
-                          {step.condition && step.condition !== 'always' && (
-                            <div style={{ padding: '6px 16px 10px', background: '#faf5ff', borderTop: '1px dashed #e0e7ff', fontSize: 11, color: '#6366f1', display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12H16L14 15H10L8 12H2"/></svg>
-                              Condition: {step.condition.replace(/_/g, ' ')}
-                            </div>
-                          )}
-
-                          {/* Inline branching for AI steps */}
-                          {step.type === 'ai_branch' && (
-                            <div style={{ padding: '8px 16px 12px', background: '#f8f9fb', borderTop: '1px solid #f1f5f9' }}>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontSize: 11 }}>
-                                <div style={{ padding: '6px 8px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7' }}><strong style={{ color: '#16a34a' }}>Positive</strong> → Book meeting</div>
-                                <div style={{ padding: '6px 8px', background: '#fef9c3', borderRadius: 6, border: '1px solid #fde68a' }}><strong style={{ color: '#a16207' }}>Objection</strong> → Handler email</div>
-                                <div style={{ padding: '6px 8px', background: '#f1f5f9', borderRadius: 6, border: '1px solid #e5e7eb' }}><strong style={{ color: '#64748b' }}>Silent</strong> → Continue</div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Between-step connector: engagement trigger point */}
-                        {idx < steps.length - 1 && (
-                          <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
-                            <div style={{ width: 2, height: 16, background: '#e5e7eb' }} />
-                          </div>
-                        )}
+                      {/* Add node */}
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {steps.length > 0 && <div style={{ width: 32, height: 2, background: '#d1d5db' }} />}
+                        <div onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])} style={{ width: 36, height: 36, borderRadius: 8, border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>+</div>
                       </div>
-                    )
-                  })}
-
-                  {/* Add step at end */}
-                  {steps.length > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-                      <div style={{ width: 2, height: 16, background: '#e5e7eb' }} />
-                    </div>
-                  )}
-                  <div className="add-step-bar" onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: steps.length > 0 ? steps[steps.length - 1].day + 2 : 1, condition: 'always' }])}>+ Add Step</div>
-
-                  {/* Engagement triggers summary at bottom */}
-                  <div style={{ marginTop: 20, padding: 16, background: '#f8f9fb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 10 }}>Active Engagement Triggers</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 11 }}>
-                      {[
-                        { signal: 'Email opened 3x', action: 'Accelerate → send next step immediately' },
-                        { signal: 'Link clicked', action: 'Skip delay → execute within 1 hour' },
-                        { signal: 'Pricing page visited', action: 'Create urgent call task' },
-                        { signal: 'No engagement 7d', action: 'Escalate to next channel' },
-                      ].map((t, i) => (
-                        <div key={i} style={{ padding: '8px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{t.signal}</span>
-                          <span style={{ color: '#64748b' }}>→ {t.action}</span>
-                        </div>
-                      ))}
                     </div>
                   </div>
-                </>
+
+                  {/* Quick add bar below flow */}
+                  <div style={{ marginTop: 32, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {stepTypes.map(t => <button key={t.type} className="btn btn-sm" onClick={() => setSteps([...steps, { id: Date.now(), type: t.type, title: t.label, desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])}>+ {t.label}</button>)}
+                  </div>
+                </div>
               )}
 
-              {/* PROSPECTS */}
               {builderTab === 'prospects' && (
-                <>
-                  <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 16 }}>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id).length}</div><div className="label">Total</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'active').length}</div><div className="label">Active</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.replied).length}</div><div className="label">Replied</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'paused').length}</div><div className="label">Paused</div></div>
-                  </div>
+                <div style={{ padding: 20 }}>
                   <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table>
-                      <thead><tr><th>Prospect</th><th>Company</th><th>State</th><th>Current Step</th><th>Replied</th><th>Actions</th></tr></thead>
-                      <tbody>
-                        {prospects.filter(p => p.sequenceId === selectedSeq?.id).map(p => (
-                          <tr key={p.id}>
-                            <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div></td>
-                            <td>{p.company}</td>
-                            <td><span className={`badge ${p.state === 'active' ? 'badge-green' : p.state.includes('finished') ? 'badge-blue' : p.state === 'bounced' ? 'badge-red' : 'badge-yellow'}`}>{p.state.replace('_', ' ')}</span></td>
-                            <td>Step {p.currentStep} / {steps.length}</td>
-                            <td style={{ color: p.replied ? '#16a34a' : '#94a3b8' }}>{p.replied ? 'Yes' : 'No'}</td>
-                            <td style={{ display: 'flex', gap: 4 }}>
-                              {p.state === 'active' && <button className="btn btn-sm" onClick={() => setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'paused' } : pr))}>Pause</button>}
-                              {p.state === 'paused' && <button className="btn btn-sm" onClick={() => setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'active' } : pr))}>Resume</button>}
-                              <button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button>
-                            </td>
-                          </tr>
-                        ))}
-                        {prospects.filter(p => p.sequenceId === selectedSeq?.id).length === 0 && (
-                          <tr><td colSpan={6} style={{ textAlign: 'center', color: '#94a3b8', padding: 30 }}>No prospects. Ask copilot to add some.</td></tr>
-                        )}
-                      </tbody>
+                    <table><thead><tr><th>Prospect</th><th>Company</th><th>State</th><th>Step</th><th></th></tr></thead>
+                      <tbody>{prospects.filter(p => p.sequenceId === selectedSeq?.id).map(p => (
+                        <tr key={p.id}><td><strong>{p.name}</strong></td><td>{p.company}</td>
+                          <td><span className={`badge ${p.state === 'active' ? 'badge-green' : 'badge-yellow'}`}>{p.state}</span></td>
+                          <td>Step {p.currentStep}</td><td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td></tr>
+                      ))}</tbody>
                     </table>
                   </div>
-                </>
+                </div>
               )}
 
-              {/* SETTINGS */}
               {builderTab === 'settings' && (
-                <div className="card">
-                  <div className="card-header"><h3>Settings</h3></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <div className="form-group"><label>Send Window</label><select><option>8:00 AM — 6:00 PM</option><option>9:00 AM — 5:00 PM</option></select></div>
-                    <div className="form-group"><label>Active Days</label><select><option>Weekdays</option><option>All Days</option></select></div>
-                    <div className="form-group"><label>Email Throttle/day</label><input type="number" defaultValue={200} /></div>
-                    <div className="form-group"><label>LinkedIn Limit/day</label><input type="number" defaultValue={50} /></div>
-                  </div>
-                  {['Pause on reply', 'Pause on bounce', 'Skip weekends', 'Auto-detect OOO'].map((s, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginTop: 8 }}>
-                      <span style={{ fontSize: 13 }}>{s}</span><div className="toggle on" />
+                <div style={{ padding: 20, maxWidth: 600 }}>
+                  <div className="card">
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Settings</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="form-group"><label>Send Window</label><select><option>8am — 6pm</option><option>9am — 5pm</option></select></div>
+                      <div className="form-group"><label>Active Days</label><select><option>Weekdays</option><option>All Days</option></select></div>
+                      <div className="form-group"><label>Email Throttle/day</label><input type="number" defaultValue={200} /></div>
+                      <div className="form-group"><label>LinkedIn Limit/day</label><input type="number" defaultValue={50} /></div>
                     </div>
-                  ))}
+                    {['Pause on reply', 'Pause on bounce', 'Skip weekends', 'Auto-detect OOO', 'Exit on meeting booked'].map((s, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#f8f9fb', borderRadius: 8, marginTop: 8, fontSize: 13 }}><span>{s}</span><div className="toggle on" /></div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* EDIT STEP MODAL */}
-      {editingStep && (
-        <div className="modal-backdrop" onClick={() => setEditingStep(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 620 }}>
-            <h3>Edit Step</h3>
-            <div className="form-group">
-              <label>Step Type</label>
-              <select value={editingStep.type} onChange={e => setEditingStep({ ...editingStep, type: e.target.value })}>
-                {stepTypes.map(t => <option key={t.type} value={t.type}>{t.label} ({t.cat})</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Title</label>
-              <input value={editingStep.title} onChange={e => setEditingStep({ ...editingStep, title: e.target.value })} placeholder="e.g. Intro Email, Follow-up Call" />
-            </div>
-            <div className="form-group">
-              <label>Description / Content / Instructions</label>
-              <textarea value={editingStep.desc} onChange={e => setEditingStep({ ...editingStep, desc: e.target.value })} placeholder="What should happen in this step? Message content, call script, or instructions for the rep..." style={{ minHeight: 100 }} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label>Day (in sequence)</label>
-                <input type="number" min="1" value={editingStep.day} onChange={e => setEditingStep({ ...editingStep, day: parseInt(e.target.value) || 1 })} />
+          {/* RIGHT: Step Detail Drawer */}
+          {selectedStep && builderTab === 'steps' && (
+            <div style={{ width: 320, borderLeft: '1px solid #e5e7eb', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
+              <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 700 }}>Step Properties</span>
+                <button onClick={() => setSelectedStep(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>×</button>
               </div>
-              <div className="form-group">
-                <label>Delay after previous (min)</label>
-                <input type="number" min="0" value={editingStep.delay || 0} onChange={e => setEditingStep({ ...editingStep, delay: parseInt(e.target.value) || 0 })} />
-              </div>
-              <div className="form-group">
-                <label>Priority</label>
-                <select value={editingStep.priority || 'normal'} onChange={e => setEditingStep({ ...editingStep, priority: e.target.value })}>
-                  <option value="normal">Normal</option>
-                  <option value="high">High — send first</option>
-                  <option value="low">Low — send last</option>
-                </select>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label>Send Window</label>
-                <select value={editingStep.sendWindow || '8am-6pm'} onChange={e => setEditingStep({ ...editingStep, sendWindow: e.target.value })}>
-                  <option value="8am-6pm">8:00 AM — 6:00 PM</option>
-                  <option value="9am-5pm">9:00 AM — 5:00 PM</option>
-                  <option value="9am-12pm">Morning only (9 AM — 12 PM)</option>
-                  <option value="anytime">Any time</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Timezone</label>
-                <select value={editingStep.timezone || 'prospect'} onChange={e => setEditingStep({ ...editingStep, timezone: e.target.value })}>
-                  <option value="prospect">Prospect's timezone</option>
-                  <option value="sender">Sender's timezone</option>
-                </select>
+              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className="form-group"><label>Type</label><select value={selectedStep.type} onChange={e => updateStep('type', e.target.value)}>{stepTypes.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}</select></div>
+                <div className="form-group"><label>Title</label><input value={selectedStep.title} onChange={e => updateStep('title', e.target.value)} /></div>
+                <div className="form-group"><label>Description</label><textarea value={selectedStep.desc} onChange={e => updateStep('desc', e.target.value)} style={{ minHeight: 70 }} /></div>
+                <div className="form-group"><label>Day</label><input type="number" min="1" value={selectedStep.day} onChange={e => updateStep('day', parseInt(e.target.value) || 1)} /></div>
+                <div className="form-group"><label>Condition</label>
+                  <select value={selectedStep.condition || 'always'} onChange={e => updateStep('condition', e.target.value)}>
+                    <option value="always">Always execute</option>
+                    <optgroup label="Engagement"><option value="if_opened">If email opened</option><option value="if_no_open">If NOT opened</option><option value="if_clicked">If link clicked</option><option value="if_opened_3x">If opened 3+ times</option><option value="if_page_visit">If page visited</option></optgroup>
+                    <optgroup label="Reply"><option value="if_no_reply">If no reply</option><option value="if_replied">If replied</option></optgroup>
+                    <optgroup label="LinkedIn"><option value="if_connected">If connected</option><option value="if_not_connected">If NOT connected</option></optgroup>
+                    <optgroup label="Escalation"><option value="if_no_engagement_3">No engagement 3 steps</option><option value="if_no_engagement_7d">No engagement 7 days</option></optgroup>
+                  </select>
+                </div>
+                <div className="form-group"><label>Send Window</label>
+                  <select value={selectedStep.sendWindow || '8am-6pm'} onChange={e => updateStep('sendWindow', e.target.value)}>
+                    <option value="8am-6pm">8am — 6pm</option><option value="9am-5pm">9am — 5pm</option><option value="9am-12pm">Morning only</option><option value="anytime">Any time</option>
+                  </select>
+                </div>
+                <div className="form-group"><label>Priority</label>
+                  <select value={selectedStep.priority || 'normal'} onChange={e => updateStep('priority', e.target.value)}>
+                    <option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option>
+                  </select>
+                </div>
+                <div className="form-group"><label>On Failure</label>
+                  <select value={selectedStep.onFailure || 'skip'} onChange={e => updateStep('onFailure', e.target.value)}>
+                    <option value="skip">Skip & continue</option><option value="pause">Pause sequence</option><option value="retry">Retry next day</option><option value="notify">Notify owner</option>
+                  </select>
+                </div>
+                <div className="form-group"><label>Template</label><input value={selectedStep.template || ''} onChange={e => updateStep('template', e.target.value)} placeholder="Link template name..." /></div>
+                <div className="form-group"><label>A/B Variant</label><textarea value={selectedStep.abVariant || ''} onChange={e => updateStep('abVariant', e.target.value)} placeholder="Alt content for split test..." style={{ minHeight: 50 }} /></div>
+                <button className="btn btn-danger" style={{ marginTop: 8 }} onClick={() => deleteStep(selectedStep.id)}>Delete Step</button>
               </div>
             </div>
-            <div className="form-group">
-              <label>Condition (when should this step execute?)</label>
-              <select value={editingStep.condition || 'always'} onChange={e => setEditingStep({ ...editingStep, condition: e.target.value })}>
-                <option value="always">Always — execute regardless</option>
-                <optgroup label="Reply-based">
-                  <option value="if_no_reply">Only if no reply to previous email</option>
-                  <option value="if_replied">Only if prospect replied (continue thread)</option>
-                </optgroup>
-                <optgroup label="Engagement-based">
-                  <option value="if_opened">Only if previous email was opened</option>
-                  <option value="if_no_open">Only if previous email NOT opened</option>
-                  <option value="if_clicked">Only if link was clicked</option>
-                  <option value="if_opened_3x">Only if email opened 3+ times</option>
-                  <option value="if_page_visit">Only if prospect visited website/pricing page</option>
-                </optgroup>
-                <optgroup label="LinkedIn-based">
-                  <option value="if_connected">Only if LinkedIn connected</option>
-                  <option value="if_not_connected">Only if LinkedIn NOT connected</option>
-                  <option value="if_linkedin_viewed">Only if prospect viewed your LinkedIn</option>
-                </optgroup>
-                <optgroup label="Channel escalation">
-                  <option value="if_no_engagement_3_steps">If no engagement after 3 steps — escalate channel</option>
-                  <option value="if_no_engagement_7_days">If no engagement for 7 days — switch channel</option>
-                </optgroup>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Template (link a template to this step)</label>
-              <input value={editingStep.template || ''} onChange={e => setEditingStep({ ...editingStep, template: e.target.value })} placeholder="Template name or leave blank" />
-            </div>
-            <div className="form-group">
-              <label>A/B Variant (optional — alternative content for split testing)</label>
-              <textarea value={editingStep.abVariant || ''} onChange={e => setEditingStep({ ...editingStep, abVariant: e.target.value })} placeholder="Alternative message content for B variant..." style={{ minHeight: 60 }} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="form-group">
-                <label>Max Retries (if fails)</label>
-                <select value={editingStep.retries || '0'} onChange={e => setEditingStep({ ...editingStep, retries: e.target.value })}>
-                  <option value="0">No retry</option>
-                  <option value="1">1 retry</option>
-                  <option value="2">2 retries</option>
-                  <option value="3">3 retries</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>On Failure</label>
-                <select value={editingStep.onFailure || 'skip'} onChange={e => setEditingStep({ ...editingStep, onFailure: e.target.value })}>
-                  <option value="skip">Skip and continue</option>
-                  <option value="pause">Pause sequence</option>
-                  <option value="retry_next_day">Retry next day</option>
-                  <option value="notify">Notify owner</option>
-                </select>
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-danger" onClick={() => { deleteStep(editingStep.id); setEditingStep(null) }}>Delete Step</button>
-              <div style={{ flex: 1 }} />
-              <button className="btn" onClick={() => setEditingStep(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { setSteps(steps.map(s => s.id === editingStep.id ? editingStep : s)); setEditingStep(null) }}>Save Changes</button>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>
