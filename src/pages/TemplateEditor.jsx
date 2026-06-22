@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const variableCategories = [
   { id: 'prospect', name: 'Prospect', vars: [
@@ -58,6 +58,50 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   const bodyRef = useRef(null)
   const subjectRef = useRef(null)
   const [activeField, setActiveField] = useState('body')
+  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'I can help write and refine this template. Ask me to draft content, improve the subject line, make it shorter, or adjust the tone.' }])
+  const [chatInput, setChatInput] = useState('')
+  const chatEndRef = useRef(null)
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
+
+  const handleChat = () => {
+    if (!chatInput.trim()) return
+    const msg = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }])
+    setChatInput('')
+    const lower = msg.toLowerCase()
+    setTimeout(() => {
+      let reply = ''
+      if (lower.includes('subject') || lower.includes('headline')) {
+        const newSubj = `Quick thought on {{company_industry}}, {{first_name}}`
+        setSubject(newSubj)
+        reply = `Updated subject line to: "${newSubj}"\n\nThis format gets 23% higher open rates — personalized + curiosity-driven.`
+      } else if (lower.includes('write') || lower.includes('draft') || lower.includes('generate')) {
+        const newBody = `Hi {{first_name}},\n\nI noticed {{company}} is ${lower.includes('expand') ? 'expanding' : 'making moves'} in {{company_industry}} — specifically {{trigger_event}}.\n\nWe've helped teams like yours tackle {{pain_point}} and achieve {{value_prop}}.\n\nWould {{meeting_times}} work for a quick chat?\n\nBest,\n{{sender_name}}\n{{sender_title}} | {{sender_company}}`
+        setBody(newBody)
+        reply = 'Drafted the template body with personalization variables. It follows the trigger → pain → value → CTA structure that gets the best reply rates.'
+      } else if (lower.includes('shorter') || lower.includes('concise') || lower.includes('brief')) {
+        const lines = body.split('\n').filter(l => l.trim())
+        setBody(lines.slice(0, Math.max(3, Math.ceil(lines.length * 0.6))).join('\n'))
+        reply = 'Shortened the template. Removed ~40% of the content. Short emails (50-125 words) have the highest reply rates.'
+      } else if (lower.includes('formal') || lower.includes('professional')) {
+        setBody(body.replace(/Hey |Hi /g, 'Dear ').replace(/chat|call/g, 'meeting').replace(/quick /g, 'brief '))
+        reply = 'Made the tone more formal/professional.'
+      } else if (lower.includes('casual') || lower.includes('friendly')) {
+        setBody(body.replace(/Dear /g, 'Hey ').replace(/meeting/g, 'chat').replace(/brief /g, 'quick '))
+        reply = 'Made the tone more casual and friendly.'
+      } else if (lower.includes('add') && lower.includes('cta')) {
+        setBody(body + '\n\nWould {{meeting_times}} work for a quick 15-min call?')
+        reply = 'Added a clear call-to-action at the end with a meeting time variable.'
+      } else if (lower.includes('add') && lower.includes('ps') || lower.includes('postscript')) {
+        setBody(body + '\n\nP.S. {{personalized_opener}}')
+        reply = 'Added a P.S. line — these get read 79% more than the body in cold emails.'
+      } else {
+        reply = "I can help refine this template:\n• \"Draft the body for a cold intro\"\n• \"Improve the subject line\"\n• \"Make it shorter\"\n• \"Make it more casual/formal\"\n• \"Add a CTA\"\n• \"Add a P.S. line\""
+      }
+      setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
+    }, 400)
+  }
 
   const insertVariable = (varKey) => {
     const insertion = `{{${varKey}}}`
@@ -83,7 +127,34 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 0, height: 'calc(100vh - 60px)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 260px', gap: 0, height: 'calc(100vh - 0px)' }}>
+      {/* LEFT: Copilot */}
+      <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Template Copilot</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>AI-assisted writing</div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {chatMessages.map((m, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+        {chatMessages.length <= 1 && (
+          <div style={{ padding: '0 12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {['Draft the body for a cold intro', 'Improve the subject line', 'Make it shorter', 'Add a CTA'].map((s, i) => (
+              <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '6px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11, color: '#475569', cursor: 'pointer' }}>{s}</button>
+            ))}
+          </div>
+        )}
+        <div style={{ padding: '10px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
+          <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask AI to help write..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
+          <button className="btn btn-primary" onClick={handleChat} style={{ padding: '8px 10px', fontSize: 11 }}>Send</button>
+        </div>
+      </div>
+
       {/* Main editor */}
       <div style={{ padding: 24, overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
