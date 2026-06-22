@@ -183,14 +183,19 @@ export default function Sequences() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {nodeBox}
           {/* Vertical line down from condition */}
-          <div style={{ width: 2, height: 20, background: '#d1d5db' }} />
-          {/* Branches side by side */}
-          <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+          <div style={{ width: 2, height: 16, background: '#d1d5db' }} />
+          {/* Horizontal line spanning branches */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start' }}>
+            {/* Horizontal bar connecting all branches */}
+            <div style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: 2, background: '#d1d5db' }} />
+            {/* Branches side by side */}
             {node.branches.map((branch, bi) => (
-              <div key={bi} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div key={bi} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 160, padding: '0 16px' }}>
+                {/* Vertical line from horizontal bar down to label */}
+                <div style={{ width: 2, height: 16, background: branch.color }} />
                 {/* Branch label */}
-                <span style={{ fontSize: 10, fontWeight: 700, color: branch.color, background: branch.color + '15', padding: '3px 10px', borderRadius: 10, marginBottom: 8 }}>{branch.label}</span>
-                {/* Vertical connector */}
+                <span style={{ fontSize: 10, fontWeight: 700, color: branch.color, background: branch.color + '15', padding: '3px 10px', borderRadius: 10, marginBottom: 6 }}>{branch.label}</span>
+                {/* Vertical connector to children */}
                 <div style={{ width: 2, height: 12, background: branch.color }} />
                 {/* Branch children vertically */}
                 {branch.next.map((child) => (
