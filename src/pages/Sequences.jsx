@@ -379,17 +379,134 @@ export default function Sequences() {
 
               {/* RULES */}
               {builderTab === 'rules' && (
-                <div className="card">
-                  <div className="card-header"><h3>Automation Rules</h3></div>
-                  {rules.map(r => (
-                    <div key={r.id} className="rule-row">
-                      <span className="trigger">{r.trigger}</span>
-                      <span style={{ color: '#94a3b8' }}>→</span>
-                      <span className="action">{r.action}</span>
-                      <div className={`toggle ${r.enabled ? 'on' : ''}`} onClick={() => toggleRule(r.id)} />
+                <>
+                  {/* Branching Logic */}
+                  <div className="card">
+                    <div className="card-header"><h3>Branching Logic</h3><span style={{ fontSize: 11, color: '#64748b' }}>Route prospects based on engagement signals</span></div>
+                    {[
+                      { id: 'b1', trigger: 'Email opened', condition: 'within 24hrs', ifTrue: 'Route to Phone Call step', ifFalse: 'Continue to next email' },
+                      { id: 'b2', trigger: 'Link clicked', condition: 'any link', ifTrue: 'Skip ahead to meeting request', ifFalse: 'Continue sequence normally' },
+                      { id: 'b3', trigger: 'No engagement', condition: 'after 3 steps', ifTrue: 'Escalate to LinkedIn channel', ifFalse: 'N/A' },
+                      { id: 'b4', trigger: 'LinkedIn accepted', condition: 'connection accepted', ifTrue: 'Skip to LinkedIn DM step', ifFalse: 'Continue email sequence' },
+                      { id: 'b5', trigger: 'Page visit detected', condition: 'pricing or demo page', ifTrue: 'Create urgent call task + notify rep', ifFalse: 'Continue sequence normally' },
+                    ].map(b => (
+                      <div key={b.id} style={{ padding: 14, border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                          <span className="badge badge-blue">{b.trigger}</span>
+                          <span style={{ fontSize: 11, color: '#64748b' }}>{b.condition}</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
+                          <div style={{ padding: '8px 12px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7' }}>
+                            <span style={{ fontWeight: 600, color: '#16a34a' }}>If Yes:</span> {b.ifTrue}
+                          </div>
+                          <div style={{ padding: '8px 12px', background: '#f8f9fb', borderRadius: 6, border: '1px solid #e5e7eb' }}>
+                            <span style={{ fontWeight: 600, color: '#64748b' }}>If No:</span> {b.ifFalse}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <button className="btn btn-sm" style={{ marginTop: 4 }}>+ Add Branch</button>
+                  </div>
+
+                  {/* Automatic Exit Conditions */}
+                  <div className="card">
+                    <div className="card-header"><h3>Automatic Exit Conditions</h3><span style={{ fontSize: 11, color: '#64748b' }}>Prospect auto-removed when triggered</span></div>
+                    {[
+                      { label: 'Meeting booked (via calendar link or manual)', enabled: true },
+                      { label: 'Prospect replies to any email', enabled: true },
+                      { label: 'Prospect opts out / unsubscribes', enabled: true },
+                      { label: 'Email hard bounced', enabled: true },
+                      { label: 'Prospect added to another active sequence', enabled: false },
+                      { label: 'Deal stage changes to Closed Won/Lost', enabled: true },
+                      { label: 'All steps completed (sequence finished)', enabled: true },
+                    ].map((c, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8f9fb', borderRadius: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 12 }}>{c.label}</span>
+                        <div className={`toggle ${c.enabled ? 'on' : ''}`} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Engagement-Based Triggers */}
+                  <div className="card">
+                    <div className="card-header"><h3>Engagement-Based Triggers</h3><span style={{ fontSize: 11, color: '#64748b' }}>Dynamically adjust timing based on signals</span></div>
+                    {[
+                      { trigger: 'Email opened 3+ times', action: 'Accelerate next step — send immediately', enabled: true },
+                      { trigger: 'Link clicked (any)', action: 'Skip delay — execute next step within 1 hour', enabled: true },
+                      { trigger: 'Pricing page visited', action: 'Create high-priority call task + Slack notification', enabled: true },
+                      { trigger: 'Content downloaded', action: 'Insert personalized follow-up referencing content', enabled: false },
+                      { trigger: 'LinkedIn profile viewed by prospect', action: 'Bump priority — send LinkedIn DM next', enabled: false },
+                      { trigger: 'No activity for 7+ days', action: 'Escalate to different channel (email→LinkedIn→call)', enabled: true },
+                    ].map((r, i) => (
+                      <div key={i} className="rule-row">
+                        <span className="trigger">{r.trigger}</span>
+                        <span style={{ color: '#94a3b8', flexShrink: 0 }}>→</span>
+                        <span className="action">{r.action}</span>
+                        <div className={`toggle ${r.enabled ? 'on' : ''}`} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Sequence Type & Automation Config */}
+                  <div className="card">
+                    <div className="card-header"><h3>Sequence Configuration</h3></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                      <div className="form-group">
+                        <label>Sequence Type</label>
+                        <select defaultValue="outbound">
+                          <option value="outbound">Outbound Prospecting</option>
+                          <option value="inbound">Inbound Lead Follow-up</option>
+                          <option value="nurture">Re-engagement / Nurture</option>
+                          <option value="abx">ABX — Account-Based</option>
+                          <option value="event">Event Follow-up</option>
+                          <option value="high_volume">High-Volume Automated</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Prospect Tier</label>
+                        <select defaultValue="all">
+                          <option value="tier1">Tier 1 — High-touch manual</option>
+                          <option value="tier2">Tier 2 — Hybrid (auto + manual)</option>
+                          <option value="tier3">Tier 3 — Fully automated</option>
+                          <option value="all">All tiers</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Channel Escalation Path</label>
+                        <select defaultValue="email_linkedin_call">
+                          <option value="email_linkedin_call">Email → LinkedIn → Call</option>
+                          <option value="email_call">Email → Call</option>
+                          <option value="linkedin_email">LinkedIn → Email</option>
+                          <option value="all_parallel">All channels in parallel</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Auto-Acceleration</label>
+                        <select defaultValue="on_engagement">
+                          <option value="off">Off — fixed timing</option>
+                          <option value="on_engagement">On engagement — accelerate if signals detected</option>
+                          <option value="on_intent">On intent signal — fast-track high-intent</option>
+                        </select>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    <div style={{ marginTop: 12, fontSize: 11, color: '#64748b', padding: 12, background: '#f8f9fb', borderRadius: 8 }}>
+                      <strong>ABX Mode:</strong> When enabled for account-based execution, multiple prospects at the same account are coordinated — steps won't overlap, and engagement from any contact at the account contributes to routing decisions for all contacts.
+                    </div>
+                  </div>
+
+                  {/* Basic Automation Rules */}
+                  <div className="card">
+                    <div className="card-header"><h3>Additional Rules</h3></div>
+                    {rules.map(r => (
+                      <div key={r.id} className="rule-row">
+                        <span className="trigger">{r.trigger}</span>
+                        <span style={{ color: '#94a3b8' }}>→</span>
+                        <span className="action">{r.action}</span>
+                        <div className={`toggle ${r.enabled ? 'on' : ''}`} onClick={() => toggleRule(r.id)} />
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
 
               {/* PROSPECTS */}
@@ -509,12 +626,26 @@ export default function Sequences() {
               <label>Condition (when should this step execute?)</label>
               <select value={editingStep.condition || 'always'} onChange={e => setEditingStep({ ...editingStep, condition: e.target.value })}>
                 <option value="always">Always — execute regardless</option>
-                <option value="if_no_reply">Only if no reply to previous email</option>
-                <option value="if_no_open">Only if previous email not opened</option>
-                <option value="if_opened">Only if previous email was opened</option>
-                <option value="if_clicked">Only if link was clicked</option>
-                <option value="if_connected">Only if LinkedIn connected</option>
-                <option value="if_not_connected">Only if LinkedIn NOT connected</option>
+                <optgroup label="Reply-based">
+                  <option value="if_no_reply">Only if no reply to previous email</option>
+                  <option value="if_replied">Only if prospect replied (continue thread)</option>
+                </optgroup>
+                <optgroup label="Engagement-based">
+                  <option value="if_opened">Only if previous email was opened</option>
+                  <option value="if_no_open">Only if previous email NOT opened</option>
+                  <option value="if_clicked">Only if link was clicked</option>
+                  <option value="if_opened_3x">Only if email opened 3+ times</option>
+                  <option value="if_page_visit">Only if prospect visited website/pricing page</option>
+                </optgroup>
+                <optgroup label="LinkedIn-based">
+                  <option value="if_connected">Only if LinkedIn connected</option>
+                  <option value="if_not_connected">Only if LinkedIn NOT connected</option>
+                  <option value="if_linkedin_viewed">Only if prospect viewed your LinkedIn</option>
+                </optgroup>
+                <optgroup label="Channel escalation">
+                  <option value="if_no_engagement_3_steps">If no engagement after 3 steps — escalate channel</option>
+                  <option value="if_no_engagement_7_days">If no engagement for 7 days — switch channel</option>
+                </optgroup>
               </select>
             </div>
             <div className="form-group">
