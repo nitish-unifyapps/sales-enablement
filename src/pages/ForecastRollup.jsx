@@ -109,7 +109,7 @@ export default function ForecastRollup() {
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 20 }}>
           {/* LEFT: Vertical Funnel */}
           <div className="card">
-            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 16 }}>Forecast Funnel</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 20 }}>Forecast Funnel</h3>
             {[
               { label: 'Pipeline', value: totalPipeline, color: '#94a3b8' },
               { label: 'Best Case', value: totalBestCase, color: '#0891b2' },
@@ -117,12 +117,16 @@ export default function ForecastRollup() {
               { label: 'Closed Won', value: totalClosed, color: '#16a34a' },
             ].map((item, i, arr) => {
               const maxVal = arr[0].value || 1
-              const width = Math.max(30, (item.value / maxVal) * 100)
+              const pct = (item.value / maxVal) * 100
               return (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 12 }}>
-                  <div style={{ width: `${width}%`, padding: '10px 12px', background: item.color, borderRadius: 6, textAlign: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>{fmt(item.value)}</div>
-                  <span style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>{item.label}</span>
-                  {i < arr.length - 1 && <div style={{ width: 2, height: 12, background: '#e5e7eb', marginTop: 4 }} />}
+                <div key={i} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 600, color: '#475569' }}>{item.label}</span>
+                    <span style={{ fontWeight: 700, color: item.color }}>{fmt(item.value)}</span>
+                  </div>
+                  <div style={{ height: 10, background: '#f1f5f9', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, background: item.color, borderRadius: 5 }} />
+                  </div>
                 </div>
               )
             })}

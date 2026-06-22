@@ -265,25 +265,27 @@ export default function Pipeline() {
             {/* Activity-to-Revenue Funnel */}
             <div className="card">
               <div className="card-header"><h3>Activity → Revenue Funnel</h3></div>
-              <div style={{ display: 'flex', gap: 0 }}>
-                {[
-                  { stage: 'Calls Made', count: 842, color: '#6366f1' },
-                  { stage: 'Conversations', count: 234, color: '#818cf8' },
-                  { stage: 'Meetings Set', count: 68, color: '#0891b2' },
-                  { stage: 'Pipeline Created', count: 42, color: '#d97706' },
-                  { stage: 'Closed Won', count: 10, color: '#16a34a' },
-                ].map((s, i, arr) => {
-                  const pct = (s.count / arr[0].count) * 100
-                  const convRate = i > 0 ? Math.round((s.count / arr[i-1].count) * 100) : 100
-                  return (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: `${Math.max(30, pct)}%`, minWidth: 40, height: 40, background: s.color, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>{s.count}</div>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: '#475569', textAlign: 'center' }}>{s.stage}</span>
-                      {i > 0 && <span style={{ fontSize: 9, color: '#94a3b8' }}>{convRate}% conv.</span>}
+              {[
+                { stage: 'Calls Made', count: 842, color: '#6366f1' },
+                { stage: 'Conversations', count: 234, color: '#818cf8' },
+                { stage: 'Meetings Set', count: 68, color: '#0891b2' },
+                { stage: 'Pipeline Created', count: 42, color: '#d97706' },
+                { stage: 'Closed Won', count: 10, color: '#16a34a' },
+              ].map((s, i, arr) => {
+                const pct = (s.count / arr[0].count) * 100
+                const convRate = i > 0 ? Math.round((s.count / arr[i-1].count) * 100) : 100
+                return (
+                  <div key={i} style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, color: '#475569' }}>{s.stage}</span>
+                      <span><strong>{s.count}</strong>{i > 0 && <span style={{ color: '#94a3b8', marginLeft: 6 }}>{convRate}% conv.</span>}</span>
                     </div>
-                  )
-                })}
-              </div>
+                    <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: s.color, borderRadius: 4 }} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {/* What's Working + Where Losing — side by side */}
