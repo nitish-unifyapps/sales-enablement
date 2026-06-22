@@ -12,10 +12,16 @@ const stepTypes = [
 ]
 
 const initialSequences = [
-  { id: 1, name: 'Enterprise Outbound — VP Sales', steps: 10, days: 14, prospects: 248, active: true, replyRate: 18, meetingRate: 4.2 },
-  { id: 2, name: 'Inbound Demo Follow-up', steps: 6, days: 8, prospects: 142, active: true, replyRate: 34, meetingRate: 12 },
-  { id: 3, name: 'Re-engagement — Lost Deals', steps: 5, days: 21, prospects: 86, active: false, replyRate: 8, meetingRate: 1.5 },
-  { id: 4, name: 'Event Attendees — Q3', steps: 7, days: 10, prospects: 320, active: true, replyRate: 22, meetingRate: 6 },
+  { id: 1, name: 'FY26 Enterprise Outbound — VP Sales', steps: 10, days: 14, type: 'interval', tags: ['create&close', 'enterprise'], active: true, score: 74, prospects: { active: 248, paused: 12, failed: 2, bounced: 18 }, contacted: 1420, opened: 77, clicked: 6, replied: 28, owner: 'SK', lastRun: '12 min ago' },
+  { id: 2, name: 'Inbound Demo Request (All Segments)', steps: 14, days: 21, type: 'interval', tags: ['inbound', 'new logo'], active: true, score: 92, prospects: { active: 154, paused: 1, failed: 4, bounced: 31 }, contacted: 1479, opened: 88, clicked: 0, replied: 62, owner: 'MT', lastRun: '12 min ago' },
+  { id: 3, name: 'PROS | C+C Manual Round1 (All Segments | NAM)', steps: 17, days: 28, type: 'interval', tags: ['create&close', 'public'], active: true, score: 26, prospects: { active: 485, paused: 256, failed: 5, bounced: 2485 }, contacted: 27125, opened: 52, clicked: 0, replied: 22, owner: 'JP', lastRun: '1 hour ago' },
+  { id: 4, name: 'PROS | Pick up the Convo (NAM)', steps: 14, days: 18, type: 'interval', tags: ['PUC', 'EMEA'], active: true, score: 60, prospects: { active: 502, paused: 150, failed: 8, bounced: 414 }, contacted: 10470, opened: 58, clicked: 0, replied: 31, owner: 'JP', lastRun: '22 min ago' },
+  { id: 5, name: 'C+C Personalized Round1 (Sales ATL | NAM)', steps: 17, days: 28, type: 'interval', tags: ['create&close', 'public'], active: true, score: 44, prospects: { active: 425, paused: 124, failed: 19, bounced: 846 }, contacted: 10858, opened: 53, clicked: 0, replied: 24, owner: 'JP', lastRun: '1 hour ago' },
+  { id: 6, name: 'UK — Automated Reply FUP', steps: 6, days: 8, type: 'interval', tags: ['EMEA', 'reply FUPs'], active: true, score: 79, prospects: { active: 2, paused: 0, failed: 2, bounced: 3 }, contacted: 222, opened: 65, clicked: 0, replied: 90, owner: 'SK', lastRun: '18 min ago' },
+  { id: 7, name: 'Inbound Demo Request (Global)', steps: 14, days: 21, type: 'interval', tags: ['inbound', 'new logo'], active: true, score: 89, prospects: { active: 278, paused: 14, failed: 6, bounced: 117 }, contacted: 2514, opened: 77, clicked: 0, replied: 54, owner: 'MT', lastRun: '37 min ago' },
+  { id: 8, name: 'Re-engagement — Lost Deals Q2', steps: 5, days: 21, type: 'interval', tags: ['nurture'], active: false, score: 34, prospects: { active: 0, paused: 86, failed: 3, bounced: 12 }, contacted: 640, opened: 42, clicked: 2, replied: 8, owner: 'SK', lastRun: '3 days ago' },
+  { id: 9, name: 'Event Follow-up — SaaStr 2026', steps: 7, days: 10, type: 'interval', tags: ['event', 'inbound'], active: true, score: 81, prospects: { active: 320, paused: 8, failed: 1, bounced: 22 }, contacted: 1890, opened: 71, clicked: 4, replied: 38, owner: 'MT', lastRun: '45 min ago' },
+  { id: 10, name: 'APAC Cold Outbound — Mid-Market', steps: 12, days: 16, type: 'interval', tags: ['APAC', 'cold'], active: true, score: 52, prospects: { active: 190, paused: 45, failed: 6, bounced: 88 }, contacted: 4200, opened: 48, clicked: 1, replied: 15, owner: 'JP', lastRun: '2 hours ago' },
 ]
 
 const sampleTemplates = [
@@ -165,25 +171,95 @@ export default function Sequences() {
             <div className="stats-grid">
               <div className="stat-box"><div className="value">{sequences.length}</div><div className="label">Total Sequences</div></div>
               <div className="stat-box"><div className="value">{sequences.filter(s => s.active).length}</div><div className="label">Active</div></div>
-              <div className="stat-box"><div className="value">{sequences.reduce((s, q) => s + q.prospects, 0)}</div><div className="label">Total Prospects</div></div>
-              <div className="stat-box"><div className="value">{Math.round(sequences.reduce((s, q) => s + q.replyRate, 0) / sequences.length)}%</div><div className="label">Avg Reply Rate</div></div>
+              <div className="stat-box"><div className="value">{sequences.reduce((s, q) => s + q.prospects.active + q.prospects.paused, 0).toLocaleString()}</div><div className="label">Total Prospects</div></div>
+              <div className="stat-box"><div className="value">{sequences.reduce((s, q) => s + q.contacted, 0).toLocaleString()}</div><div className="label">Total Contacted</div></div>
             </div>
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+
+            {/* Sequences Table */}
+            <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
               <table>
-                <thead><tr><th>Sequence Name</th><th>Steps</th><th>Duration</th><th>Prospects</th><th>Reply Rate</th><th>Meetings</th><th>Status</th><th></th></tr></thead>
+                <thead>
+                  <tr><th style={{ width: 280 }}>Name</th><th>Tags</th><th>Score</th><th>Current Prospects</th><th>Contacted</th><th>Opened</th><th>Clicked</th><th>Replied</th><th>Last Run</th><th>Owner</th><th></th></tr>
+                </thead>
                 <tbody>
-                  {sequences.map(seq => (
-                    <tr key={seq.id} style={{ cursor: 'pointer' }} onClick={() => openSequence(seq)}>
-                      <td><strong>{seq.name}</strong></td>
-                      <td>{seq.steps}</td>
-                      <td>{seq.days}d</td>
-                      <td>{seq.prospects}</td>
-                      <td style={{ fontWeight: 600 }}>{seq.replyRate}%</td>
-                      <td>{seq.meetingRate}%</td>
-                      <td><span className={`badge ${seq.active ? 'badge-green' : 'badge-gray'}`}>{seq.active ? 'Active' : 'Paused'}</span></td>
-                      <td><button className="btn btn-sm">Open →</button></td>
-                    </tr>
-                  ))}
+                  {sequences.map(seq => {
+                    const totalProspects = seq.prospects.active + seq.prospects.paused + seq.prospects.failed + seq.prospects.bounced
+                    const scoreColor = seq.score >= 70 ? '#16a34a' : seq.score >= 40 ? '#d97706' : '#dc2626'
+                    return (
+                      <tr key={seq.id} style={{ cursor: 'pointer' }} onClick={() => openSequence(seq)}>
+                        <td>
+                          <div><strong>{seq.name}</strong></div>
+                          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{seq.steps} steps by {seq.type}</div>
+                          <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                            {seq.tags.map(tag => <span key={tag} style={{ fontSize: 10, padding: '1px 6px', background: '#f1f5f9', borderRadius: 10, color: '#64748b' }}>{tag}</span>)}
+                          </div>
+                        </td>
+                        <td><span className={`badge ${seq.active ? 'badge-green' : 'badge-gray'}`}>{seq.active ? 'Active' : 'Paused'}</span></td>
+                        <td>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', border: `3px solid ${scoreColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: scoreColor }}>{seq.score}</div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                            <span><strong style={{ color: '#16a34a' }}>{seq.prospects.active}</strong> <span style={{ color: '#94a3b8' }}>Active</span></span>
+                            <span><strong style={{ color: '#d97706' }}>{seq.prospects.paused}</strong> <span style={{ color: '#94a3b8' }}>Paused</span></span>
+                            <span><strong style={{ color: '#dc2626' }}>{seq.prospects.failed}</strong> <span style={{ color: '#94a3b8' }}>Failed</span></span>
+                            <span><strong style={{ color: '#64748b' }}>{seq.prospects.bounced}</strong> <span style={{ color: '#94a3b8' }}>Bounced</span></span>
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 500 }}>{seq.contacted.toLocaleString()}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{seq.opened}%</div>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{seq.clicked}%</div>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{seq.replied}%</div>
+                        </td>
+                        <td style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>{seq.lastRun}</td>
+                        <td>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>{seq.owner}</div>
+                        </td>
+                        <td><button className="btn btn-sm" onClick={e => { e.stopPropagation(); openSequence(seq) }}>→</button></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* All Prospects Table */}
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700 }}>All Prospects in Sequences</h3>
+                <span style={{ fontSize: 12, color: '#64748b' }}>{prospects.length} prospects</span>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Current Step</th><th>Last Contacted</th><th>Opened</th><th>Clicked</th><th>Replied</th><th>Owner</th></tr>
+                </thead>
+                <tbody>
+                  {prospects.map(p => {
+                    const stateLabels = { active: 'Active', paused: 'Paused', paused_ooo: 'Paused (OOO)', bounced: 'Bounced', finished_replied: 'Finished (Replied)', finished_no_reply: 'Finished (No Reply)', opted_out: 'Opted Out' }
+                    const stateBadge = { active: 'badge-green', paused: 'badge-yellow', paused_ooo: 'badge-yellow', bounced: 'badge-red', finished_replied: 'badge-blue', finished_no_reply: 'badge-gray', opted_out: 'badge-red' }
+                    return (
+                      <tr key={p.id}>
+                        <td>
+                          <div><strong>{p.name}</strong></div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div>
+                        </td>
+                        <td>{p.company}</td>
+                        <td style={{ fontSize: 12 }}>{sequences[p.id % sequences.length]?.name.substring(0, 30)}...</td>
+                        <td><span className={`badge ${stateBadge[p.state] || 'badge-gray'}`}>{stateLabels[p.state]}</span></td>
+                        <td style={{ fontWeight: 500 }}>Step {p.currentStep}/{steps.length}</td>
+                        <td style={{ fontSize: 12, color: '#64748b' }}>{p.lastContacted}</td>
+                        <td style={{ textAlign: 'center' }}>{p.opened ? '●' : '○'}</td>
+                        <td style={{ textAlign: 'center' }}>{p.clicked ? '●' : '○'}</td>
+                        <td style={{ textAlign: 'center', color: p.replied ? '#16a34a' : 'inherit' }}>{p.replied ? '●' : '○'}</td>
+                        <td style={{ fontSize: 12 }}>{p.owner}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
