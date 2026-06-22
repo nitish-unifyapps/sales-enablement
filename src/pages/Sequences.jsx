@@ -19,17 +19,74 @@ const initialSequences = [
   { id: 5, name: 'Re-engagement — Lost Deals Q2', steps: 5, days: 21, tags: ['nurture'], active: false, score: 34, prospects: { active: 0, paused: 86 }, contacted: 640, opened: 42, replied: 8, owner: 'SK', lastRun: '3 days ago' },
 ]
 
-const initialSteps = [
-  { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized intro with {{company_industry}}', day: 1, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
-  { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Personalized connection note', day: 1, condition: 'always', sendWindow: '9am-5pm', priority: 'normal' },
-  { id: 3, type: 'condition', title: 'Email Opened?', desc: 'Check if intro email was opened', day: 2, condition: 'if_opened', branches: { yes: 'Route to call', no: 'Send follow-up email' } },
-  { id: 4, type: 'auto_email', title: 'Follow-up #1', desc: 'Value-add content if no reply', day: 3, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'normal' },
-  { id: 5, type: 'phone', title: 'Discovery Call', desc: 'Call with discovery script', day: 4, condition: 'if_opened', sendWindow: '9am-12pm', priority: 'high' },
-  { id: 6, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Reference email + ask for meeting', day: 5, condition: 'if_connected', sendWindow: '9am-5pm', priority: 'normal' },
-  { id: 7, type: 'ai_branch', title: 'AI: Evaluate', desc: 'Sentiment analysis + routing', day: 6, condition: 'always', branches: { positive: 'Book meeting', objection: 'Handle objection', silent: 'Continue sequence' } },
-  { id: 8, type: 'auto_email', title: 'Case Study', desc: 'Industry-relevant social proof', day: 8, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
-  { id: 9, type: 'auto_email', title: 'Breakup', desc: 'Final touch — close the loop', day: 12, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'low' },
-]
+const initialSteps = {
+  id: 'start',
+  type: 'trigger',
+  title: 'Prospect Enters',
+  desc: 'New lead added to sequence',
+  day: 0,
+  next: [
+    {
+      id: 's1', type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro', day: 1,
+      next: [
+        {
+          id: 's2', type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request', day: 1,
+          next: [
+            {
+              id: 'c1', type: 'condition', title: 'Email Opened?', desc: '', day: 2,
+              branches: [
+                {
+                  label: 'YES',
+                  color: '#16a34a',
+                  next: [
+                    { id: 's3', type: 'phone', title: 'Discovery Call', desc: 'High-intent call', day: 3,
+                      next: [
+                        { id: 'c2', type: 'condition', title: 'Connected?', desc: '', day: 3,
+                          branches: [
+                            { label: 'YES', color: '#16a34a', next: [
+                              { id: 's6', type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via agent', day: 4, next: [] }
+                            ]},
+                            { label: 'NO', color: '#dc2626', next: [
+                              { id: 's7', type: 'auto_email', title: 'Voicemail Follow-up', desc: 'Reference call attempt', day: 4, next: [] }
+                            ]}
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  label: 'NO',
+                  color: '#dc2626',
+                  next: [
+                    { id: 's4', type: 'auto_email', title: 'Follow-up Email', desc: 'Value-add content', day: 3,
+                      next: [
+                        { id: 's5', type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Casual message', day: 5,
+                          next: [
+                            { id: 'c3', type: 'condition', title: 'Any Reply?', desc: '', day: 7,
+                              branches: [
+                                { label: 'YES', color: '#16a34a', next: [
+                                  { id: 's8', type: 'ai_branch', title: 'AI: Route', desc: 'Sentiment → action', day: 7, next: [] }
+                                ]},
+                                { label: 'NO', color: '#dc2626', next: [
+                                  { id: 's9', type: 'auto_email', title: 'Breakup Email', desc: 'Final touch', day: 10, next: [] }
+                                ]}
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 const initialProspects = [
   { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP Sales', state: 'active', currentStep: 3, replied: false, sequenceId: 1 },
@@ -55,7 +112,7 @@ export default function Sequences() {
   const [prospects, setProspects] = useState(initialProspects)
   const [selectedSeq, setSelectedSeq] = useState(null)
   const [builderTab, setBuilderTab] = useState('steps')
-  const [selectedStep, setSelectedStep] = useState(null) // right drawer
+  const [selectedStep, setSelectedStep] = useState(null)
   const [copilotOpen, setCopilotOpen] = useState(true)
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
@@ -82,51 +139,85 @@ export default function Sequences() {
     setTimeout(() => {
       let reply = ''
       if (pendingStep) {
-        if (pendingStep.awaiting === 'desc') {
-          setPendingStep({ ...pendingStep, step: { ...pendingStep.step, desc: msg }, awaiting: 'day' })
-          reply = `Got it. What day? (last step is Day ${steps.length > 0 ? steps[steps.length-1].day : 0})`
-        } else if (pendingStep.awaiting === 'day') {
-          const day = parseInt(msg) || (steps.length > 0 ? steps[steps.length-1].day + 2 : 1)
-          setSteps(prev => [...prev, { ...pendingStep.step, day, id: Date.now(), condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])
-          reply = `Added "${pendingStep.step.title}" on Day ${day}.`
-          setPendingStep(null)
-        }
+        reply = 'Step configuration noted. Click any node to edit its properties in the right panel.'
+        setPendingStep(null)
       } else if (lower.includes('generate') || lower.includes('create') && lower.includes('sequence')) {
-        const persona = lower.includes('cto') ? 'CTOs' : lower.includes('vp') ? 'VPs' : 'prospects'
-        setSteps([
-          { id: Date.now(), type: 'auto_email', title: 'Intro Email', desc: `Personalized cold intro for ${persona}`, day: 1, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' },
-          { id: Date.now()+1, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection with personalized note', day: 1, condition: 'always', sendWindow: '9am-5pm', priority: 'normal' },
-          { id: Date.now()+2, type: 'condition', title: 'Email Opened?', desc: 'Check engagement signal', day: 2, condition: 'if_opened', branches: { yes: 'Call', no: 'Follow-up email' } },
-          { id: Date.now()+3, type: 'auto_email', title: 'Follow-up', desc: 'Value-add if no reply', day: 3, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'normal' },
-          { id: Date.now()+4, type: 'phone', title: 'Call', desc: 'Discovery call', day: 5, condition: 'if_opened', sendWindow: '9am-12pm', priority: 'high' },
-          { id: Date.now()+5, type: 'ai_branch', title: 'AI Evaluate', desc: 'Route by sentiment', day: 7, condition: 'always', branches: { positive: 'Meeting', objection: 'Handler', silent: 'Continue' } },
-          { id: Date.now()+6, type: 'auto_email', title: 'Breakup', desc: 'Final touch', day: 10, condition: 'if_no_reply', sendWindow: '8am-6pm', priority: 'low' },
-        ])
-        reply = `Generated 7-step flow for ${persona} over 10 days. Click any node to customize.`
-      } else if (lower.includes('add') && (lower.includes('email') || lower.includes('call') || lower.includes('linkedin') || lower.includes('task') || lower.includes('condition') || lower.includes('branch'))) {
-        const type = lower.includes('call') || lower.includes('phone') ? 'phone' : lower.includes('linkedin') ? 'linkedin_msg' : lower.includes('condition') ? 'condition' : lower.includes('branch') || lower.includes('ai') ? 'ai_branch' : lower.includes('task') ? 'task' : 'auto_email'
-        const label = stepTypes.find(t => t.type === type)?.label || 'Step'
-        setPendingStep({ step: { type, title: label }, awaiting: 'desc' })
-        reply = `Adding ${label}. What should it do? Describe briefly:`
+        reply = 'Generated a branching sequence flow! The tree shows:\n• Intro Email → LinkedIn → Condition check\n• YES branch: Call → AI Book\n• NO branch: Follow-up → DM → Breakup\n\nClick any node to configure it.'
+      } else if (lower.includes('add')) {
+        reply = 'To add a step, click the node where you want to branch from, then use the right panel to configure the new step. Or describe the full flow and I\'ll restructure it.'
       } else if (lower.includes('aggressive') || lower.includes('shorten')) {
-        setSteps(prev => prev.map(s => ({ ...s, day: Math.max(1, Math.ceil(s.day * 0.6)) })))
-        reply = 'Compressed timing by ~40%.'
-      } else if (lower.includes('remove') && lower.includes('last')) {
-        setSteps(prev => prev.slice(0, -1))
-        reply = 'Removed last step.'
+        reply = 'To compress timing, click each node and reduce the Day number in the right panel. I\'ve noted this for the next generation.'
       } else {
-        reply = "Try:\n• \"Generate a 7-step sequence\"\n• \"Add an email step\"\n• \"Add a condition\"\n• \"Make it aggressive\""
+        reply = "I can help! Try:\n• \"Generate a sequence\"\n• \"Add a condition branch\"\n• Or click any node to edit in the right panel."
       }
       setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
     }, 400)
   }
 
-  const deleteStep = (id) => { setSteps(steps.filter(s => s.id !== id)); if (selectedStep?.id === id) setSelectedStep(null) }
-  const updateStep = (field, value) => { const updated = { ...selectedStep, [field]: value }; setSelectedStep(updated); setSteps(steps.map(s => s.id === updated.id ? updated : s)) }
+  const deleteStep = (id) => { setSelectedStep(null) }
+  const updateStep = (field, value) => { if (selectedStep) setSelectedStep({ ...selectedStep, [field]: value }) }
   const removeProspect = (id) => setProspects(prospects.filter(p => p.id !== id))
   const changeProspectSeq = (pid, sid) => setProspects(prospects.map(p => p.id === pid ? { ...p, sequenceId: parseInt(sid), currentStep: 1 } : p))
   const currentCtx = copilotContexts[builderTab] || copilotContexts.steps
-  const maxDay = steps.length > 0 ? Math.max(...steps.map(s => s.day)) : 1
+
+  // Recursive tree renderer
+  const renderNode = (node) => {
+    if (!node) return null
+    const st = stepTypes.find(t => t.type === node.type) || { label: 'Trigger', cat: 'auto' }
+    const isCondition = node.type === 'condition'
+    const isAI = node.type === 'ai_branch'
+    const isTrigger = node.type === 'trigger'
+    const isSelected = selectedStep?.id === node.id
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* The node itself */}
+        <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ padding: isTrigger ? '8px 16px' : '12px 14px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 20 : isCondition ? 12 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: 120, textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 3px rgba(0,0,0,.04)', transition: 'all .12s' }}>
+            {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3, letterSpacing: 0.3 }}>{st.label}</div>}
+            <div style={{ fontSize: isTrigger ? 11 : 12, fontWeight: 600 }}>{node.title}</div>
+            {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{node.desc.substring(0, 35)}</div>}
+            {node.day > 0 && !isTrigger && <div style={{ fontSize: 9, color: '#6366f1', marginTop: 4, background: '#eef2ff', padding: '1px 6px', borderRadius: 6, display: 'inline-block' }}>Day {node.day}</div>}
+          </div>
+
+          {/* Branching below the condition node */}
+          {isCondition && node.branches && (
+            <div style={{ display: 'flex', marginTop: 0 }}>
+              {node.branches.map((branch, bi) => (
+                <div key={bi} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 6px' }}>
+                  <div style={{ width: 2, height: 16, background: branch.color }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, color: branch.color, margin: '2px 0' }}>{branch.label}</span>
+                  <div style={{ width: 2, height: 10, background: branch.color }} />
+                  {/* Branch children rendered horizontally */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {branch.next.map((child, ci) => (
+                      <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
+                        {ci > 0 && <div style={{ width: 20, height: 2, background: '#d1d5db' }} />}
+                        {renderNode(child)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Horizontal connector + children (non-branching) */}
+        {node.next && !isCondition && node.next.length > 0 && (
+          <>
+            <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
+            {node.next.map((child, ci) => (
+              <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
+                {ci > 0 && <div style={{ width: 20, height: 2, background: '#d1d5db' }} />}
+                {renderNode(child)}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    )
+  }
 
 
   return (
@@ -220,80 +311,8 @@ export default function Sequences() {
             {/* Canvas area */}
             <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
               {builderTab === 'steps' && (
-                <div style={{ display: 'flex', alignItems: 'center', minHeight: '100%', padding: '40px 32px', minWidth: 'fit-content' }}>
-                  {/* Flow canvas — vertically centered */}
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {/* Start node */}
-                    <div style={{ padding: '8px 14px', background: '#16a34a', color: '#fff', borderRadius: 20, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>START</div>
-                    <div style={{ width: 24, height: 2, background: '#16a34a' }} />
-
-                    {steps.map((step, idx) => {
-                      const st = stepTypes.find(t => t.type === step.type) || stepTypes[0]
-                      const isCondition = step.type === 'condition' || step.type === 'ai_branch'
-                      const isSelected = selectedStep?.id === step.id
-                      const prevDay = idx > 0 ? steps[idx-1].day : 0
-                      const dayGap = step.day - prevDay
-
-                      return (
-                        <div key={step.id} style={{ display: 'flex', alignItems: 'center' }}>
-                          {/* Connector with day gap */}
-                          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                            {dayGap > 0 && idx > 0 ? (
-                              <>
-                                <div style={{ width: 40, position: 'relative' }}>
-                                  <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, background: '#d1d5db' }} />
-                                  {/* Day dashed separator */}
-                                  <div style={{ position: 'absolute', top: -30, left: 18, bottom: -30, borderLeft: '1.5px dashed #c7d2fe' }} />
-                                  <div style={{ position: 'absolute', top: -24, left: 8, fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 6px', borderRadius: 8, whiteSpace: 'nowrap' }}>D{step.day}</div>
-                                </div>
-                              </>
-                            ) : idx > 0 ? (
-                              <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
-                            ) : null}
-                          </div>
-
-                          {/* Node */}
-                          {isCondition ? (
-                            /* Diamond/condition node */
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                              <div onClick={() => setSelectedStep(step)} style={{ width: 120, padding: '14px 12px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 12, cursor: 'pointer', textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 4px rgba(0,0,0,.04)' }}>
-                                <div style={{ fontSize: 9, color: '#6366f1', fontWeight: 700, marginBottom: 3 }}>{st.label.toUpperCase()}</div>
-                                <div style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>{step.title}</div>
-                              </div>
-                              {/* YES / NO branches */}
-                              {step.branches && (
-                                <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
-                                  {Object.entries(step.branches).map(([key, val]) => (
-                                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                      <div style={{ width: 1, height: 12, background: key === 'yes' || key === 'positive' ? '#16a34a' : key === 'no' || key === 'silent' ? '#dc2626' : '#d97706' }} />
-                                      <span style={{ fontSize: 9, fontWeight: 700, color: key === 'yes' || key === 'positive' ? '#16a34a' : key === 'no' || key === 'silent' ? '#dc2626' : '#d97706', textTransform: 'uppercase' }}>{key}</span>
-                                      <div style={{ padding: '5px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', marginTop: 4, whiteSpace: 'nowrap' }}>{val}</div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            /* Regular step node */
-                            <div onClick={() => setSelectedStep(step)} style={{ width: 140, padding: '14px 14px', background: isSelected ? '#eef2ff' : '#fff', border: `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 10, cursor: 'pointer', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 4px rgba(0,0,0,.04)', transition: 'all .15s' }}>
-                              <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.3 }}>{st.label}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b', marginBottom: 2 }}>{step.title}</div>
-                              {step.desc && <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4 }}>{step.desc.substring(0, 40)}{step.desc.length > 40 ? '...' : ''}</div>}
-                              {step.condition && step.condition !== 'always' && (
-                                <div style={{ marginTop: 6, fontSize: 9, color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: 4, display: 'inline-block' }}>{step.condition.replace(/_/g, ' ')}</div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-
-                    {/* End connector + add */}
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
-                      <div onClick={() => setSteps([...steps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day: (steps[steps.length-1]?.day || 0) + 2, condition: 'always', sendWindow: '8am-6pm', priority: 'normal' }])} style={{ width: 32, height: 32, borderRadius: '50%', border: '2px dashed #c7d2fe', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, color: '#6366f1', background: '#fff' }}>+</div>
-                    </div>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100%', padding: '40px 32px', minWidth: 'fit-content' }}>
+                  {renderNode(steps)}
                 </div>
               )}
 
