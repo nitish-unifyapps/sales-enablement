@@ -160,63 +160,71 @@ export default function Sequences() {
   const changeProspectSeq = (pid, sid) => setProspects(prospects.map(p => p.id === pid ? { ...p, sequenceId: parseInt(sid), currentStep: 1 } : p))
   const currentCtx = copilotContexts[builderTab] || copilotContexts.steps
 
-  // Recursive tree renderer
+  // Recursive tree renderer — fully horizontal
   const renderNode = (node) => {
     if (!node) return null
     const st = stepTypes.find(t => t.type === node.type) || { label: 'Trigger', cat: 'auto' }
     const isCondition = node.type === 'condition'
-    const isAI = node.type === 'ai_branch'
     const isTrigger = node.type === 'trigger'
     const isSelected = selectedStep?.id === node.id
 
-    return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {/* The node itself */}
-        <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ padding: isTrigger ? '8px 16px' : '12px 14px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 20 : isCondition ? 12 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: 120, textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.1)' : '0 1px 3px rgba(0,0,0,.04)', transition: 'all .12s' }}>
-            {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3, letterSpacing: 0.3 }}>{st.label}</div>}
-            <div style={{ fontSize: isTrigger ? 11 : 12, fontWeight: 600 }}>{node.title}</div>
-            {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{node.desc.substring(0, 35)}</div>}
-            {node.day > 0 && !isTrigger && <div style={{ fontSize: 9, color: '#6366f1', marginTop: 4, background: '#eef2ff', padding: '1px 6px', borderRadius: 6, display: 'inline-block' }}>Day {node.day}</div>}
-          </div>
-
-          {/* Branching below the condition node */}
-          {isCondition && node.branches && (
-            <div style={{ display: 'flex', marginTop: 0 }}>
-              {node.branches.map((branch, bi) => (
-                <div key={bi} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 6px' }}>
-                  <div style={{ width: 2, height: 16, background: branch.color }} />
-                  <span style={{ fontSize: 9, fontWeight: 700, color: branch.color, margin: '2px 0' }}>{branch.label}</span>
-                  <div style={{ width: 2, height: 10, background: branch.color }} />
-                  {/* Branch children rendered horizontally */}
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {branch.next.map((child, ci) => (
-                      <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
-                        {ci > 0 && <div style={{ width: 20, height: 2, background: '#d1d5db' }} />}
-                        {renderNode(child)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Horizontal connector + children (non-branching) */}
-        {node.next && !isCondition && node.next.length > 0 && (
-          <>
-            <div style={{ width: 28, height: 2, background: '#d1d5db' }} />
-            {node.next.map((child, ci) => (
-              <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
-                {ci > 0 && <div style={{ width: 20, height: 2, background: '#d1d5db' }} />}
-                {renderNode(child)}
-              </div>
-            ))}
-          </>
-        )}
+    // Node box
+    const nodeEl = (
+      <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ padding: isTrigger ? '8px 16px' : '10px 12px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 20 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: isTrigger ? 80 : 110, textAlign: 'center', boxShadow: isSelected ? '0 3px 10px rgba(99,102,241,.12)' : '0 1px 3px rgba(0,0,0,.03)', flexShrink: 0 }}>
+        {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>{st.label}</div>}
+        <div style={{ fontSize: isTrigger ? 11 : 11, fontWeight: 600 }}>{node.title}</div>
+        {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>{node.desc.substring(0, 30)}</div>}
+        {node.day > 0 && !isTrigger && <div style={{ fontSize: 8, color: '#6366f1', marginTop: 3 }}>Day {node.day}</div>}
       </div>
     )
+
+    // For condition nodes: render node, then horizontal connector, then branches stacked vertically, each branch going right
+    if (isCondition && node.branches) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {nodeEl}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 0 }}>
+            {/* Vertical line from node to branches */}
+            {node.branches.map((branch, bi) => (
+              <div key={bi} style={{ display: 'flex', alignItems: 'center', marginTop: bi > 0 ? 12 : 0 }}>
+                {/* Horizontal connector line from condition to branch label */}
+                <svg width="40" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="40" y2="1" stroke={branch.color} strokeWidth="2" /></svg>
+                {/* Branch label */}
+                <span style={{ fontSize: 9, fontWeight: 700, color: branch.color, padding: '2px 6px', background: branch.color + '18', borderRadius: 4, flexShrink: 0 }}>{branch.label}</span>
+                {/* Connector to children */}
+                <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke={branch.color} strokeWidth="2" /></svg>
+                {/* Branch children */}
+                {branch.next.map((child, ci) => (
+                  <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
+                    {ci > 0 && <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>}
+                    {renderNode(child)}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // For regular nodes: render node, connector, then children
+    if (node.next && node.next.length > 0) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {nodeEl}
+          <svg width="28" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="28" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>
+          {node.next.map((child, ci) => (
+            <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
+              {ci > 0 && <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>}
+              {renderNode(child)}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    // Leaf node
+    return nodeEl
   }
 
 
