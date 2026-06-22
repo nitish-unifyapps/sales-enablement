@@ -84,6 +84,7 @@ export default function Sequences() {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pendingStep, setPendingStep] = useState(null) // for multi-turn step creation
+  const [editingStep, setEditingStep] = useState(null)
   const chatEndRef = useRef(null)
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
@@ -350,7 +351,7 @@ export default function Sequences() {
                   </div>
                   {steps.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
-                      <div style={{ fontSize: 13, marginBottom: 8 }}>No steps yet. Use the copilot or buttons above to add steps.</div>
+                      <div style={{ fontSize: 13 }}>No steps yet. Use the copilot or buttons above to add steps.</div>
                     </div>
                   )}
                   {steps.map((step, idx) => {
@@ -366,6 +367,7 @@ export default function Sequences() {
                             {step.desc && <div className="desc">{step.desc}</div>}
                           </div>
                           <div className="step-actions">
+                            <button onClick={() => setEditingStep(step)} title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
                             <button onClick={() => deleteStep(step.id)} title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                           </div>
                         </div>
@@ -392,24 +394,38 @@ export default function Sequences() {
 
               {/* PROSPECTS */}
               {builderTab === 'prospects' && (
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <table>
-                    <thead><tr><th>Prospect</th><th>State</th><th>Step</th><th></th></tr></thead>
-                    <tbody>
-                      {prospects.filter(p => p.sequenceId === selectedSeq?.id).map(p => (
-                        <tr key={p.id}>
-                          <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.company}</div></td>
-                          <td><span className={`badge ${p.state === 'active' ? 'badge-green' : 'badge-yellow'}`}>{p.state}</span></td>
-                          <td>Step {p.currentStep}</td>
-                          <td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
-                        </tr>
-                      ))}
-                      {prospects.filter(p => p.sequenceId === selectedSeq?.id).length === 0 && (
-                        <tr><td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8', padding: 30 }}>No prospects. Ask copilot to add some.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <>
+                  <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 16 }}>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id).length}</div><div className="label">Total</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'active').length}</div><div className="label">Active</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.replied).length}</div><div className="label">Replied</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id && p.state === 'paused').length}</div><div className="label">Paused</div></div>
+                  </div>
+                  <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table>
+                      <thead><tr><th>Prospect</th><th>Company</th><th>State</th><th>Current Step</th><th>Replied</th><th>Actions</th></tr></thead>
+                      <tbody>
+                        {prospects.filter(p => p.sequenceId === selectedSeq?.id).map(p => (
+                          <tr key={p.id}>
+                            <td><strong>{p.name}</strong><div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div></td>
+                            <td>{p.company}</td>
+                            <td><span className={`badge ${p.state === 'active' ? 'badge-green' : p.state.includes('finished') ? 'badge-blue' : p.state === 'bounced' ? 'badge-red' : 'badge-yellow'}`}>{p.state.replace('_', ' ')}</span></td>
+                            <td>Step {p.currentStep} / {steps.length}</td>
+                            <td style={{ color: p.replied ? '#16a34a' : '#94a3b8' }}>{p.replied ? 'Yes' : 'No'}</td>
+                            <td style={{ display: 'flex', gap: 4 }}>
+                              {p.state === 'active' && <button className="btn btn-sm" onClick={() => setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'paused' } : pr))}>Pause</button>}
+                              {p.state === 'paused' && <button className="btn btn-sm" onClick={() => setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'active' } : pr))}>Resume</button>}
+                              <button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button>
+                            </td>
+                          </tr>
+                        ))}
+                        {prospects.filter(p => p.sequenceId === selectedSeq?.id).length === 0 && (
+                          <tr><td colSpan={6} style={{ textAlign: 'center', color: '#94a3b8', padding: 30 }}>No prospects. Ask copilot to add some.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
 
               {/* SETTINGS */}
@@ -429,6 +445,37 @@ export default function Sequences() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT STEP MODAL */}
+      {editingStep && (
+        <div className="modal-backdrop" onClick={() => setEditingStep(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Edit Step</h3>
+            <div className="form-group">
+              <label>Step Type</label>
+              <select value={editingStep.type} onChange={e => setEditingStep({ ...editingStep, type: e.target.value })}>
+                {stepTypes.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Title</label>
+              <input value={editingStep.title} onChange={e => setEditingStep({ ...editingStep, title: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Description / Content</label>
+              <textarea value={editingStep.desc} onChange={e => setEditingStep({ ...editingStep, desc: e.target.value })} placeholder="Step instructions, message content..." />
+            </div>
+            <div className="form-group">
+              <label>Day</label>
+              <input type="number" min="1" value={editingStep.day} onChange={e => setEditingStep({ ...editingStep, day: parseInt(e.target.value) || 1 })} />
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setEditingStep(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => { setSteps(steps.map(s => s.id === editingStep.id ? editingStep : s)); setEditingStep(null) }}>Save</button>
             </div>
           </div>
         </div>

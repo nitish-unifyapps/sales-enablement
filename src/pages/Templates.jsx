@@ -1,94 +1,139 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import TemplateEditor from './TemplateEditor'
 
 const initialTemplates = [
-  { id: 1, name: 'CXO Value Prop — Q3', type: 'Email', owner: 'Marketing Team', subject: 'Quick question regarding {{company_industry}}', body: 'Hi {{first_name}},\n\nI noticed {{company}} recently expanded into {{company_industry}} — quick thought on how we\'ve helped similar teams tackle {{pain_point}}.\n\nWould you be open to a 15-min chat this week?\n\nBest,\n{{sender_name}}', cadences: 4, openRate: 64, replyRate: 12, meetings: 8, sent: 142, badge: 'Top Performer' },
-  { id: 2, name: 'LinkedIn Connection — Warm', type: 'LinkedIn', owner: 'Sales Team', subject: '', body: 'Hi {{first_name}}, I came across your work at {{company}} — impressed by {{recent_achievement}}. Would love to connect.', cadences: 6, openRate: 42, replyRate: 18, meetings: 12, sent: 386, badge: 'High Volume' },
-  { id: 3, name: 'Follow-Up After Demo', type: 'Email', owner: 'Sales Team', subject: 'Re: Our conversation about {{use_case}}', body: 'Thanks for the time today, {{first_name}}.\n\nBased on what you shared about {{pain_point}}, here\'s how we\'d approach it:\n\n1. [Key point 1]\n2. [Key point 2]\n\nWould {{meeting_times}} work for a follow-up?\n\n{{sender_name}}\n{{sender_title}}', cadences: 3, openRate: 72, replyRate: 24, meetings: 18, sent: 89, badge: 'AI Enhanced' },
-  { id: 4, name: 'Objection Handler — Budget', type: 'Email', owner: 'Enablement', subject: 'Re: budget concerns', body: 'Totally understand, {{first_name}}. Budget timing is real.\n\nHere\'s what teams like {{company}} typically do:\n- Start with a pilot scope\n- Show ROI within 30 days\n- Expand from there\n\nWould a smaller starting point make sense to explore?', cadences: 2, openRate: 58, replyRate: 9, meetings: 3, sent: 64, badge: 'Standard' },
-  { id: 5, name: 'Cold Call Script — Discovery', type: 'Call Script', owner: 'Sales Ops', subject: '', body: 'Opening: "Hi {{first_name}}, this is {{sender_name}} from {{sender_company}}."\n\nReason for call: "I\'m reaching out because companies in {{company_industry}} are dealing with {{pain_point}} and I wanted to see if that resonates with you."\n\nQualify: "Are you the right person to discuss this? Who else is involved?"\n\nNext step: "Would it make sense to set up 15 minutes to dive deeper?"', cadences: 5, openRate: 28, replyRate: 14, meetings: 22, sent: 210, badge: 'Top Performer' },
-  { id: 6, name: 'Breakup Email — Last Touch', type: 'Email', owner: 'Sales Team', subject: 'Closing the loop, {{first_name}}', body: '{{first_name}},\n\nI\'ve reached out a few times and haven\'t heard back — totally fine if timing isn\'t right.\n\nI\'ll close this out on my end, but if {{pain_point}} becomes a priority again, my door is always open.\n\nWishing you and the {{company}} team all the best.\n\n{{sender_name}}', cadences: 7, openRate: 45, replyRate: 6, meetings: 4, sent: 298, badge: 'Needs Review' },
+  { id: 1, name: 'CXO Value Prop — Q3', type: 'Email', owner: 'Marketing', subject: 'Quick question regarding {{company_industry}}', body: 'Hi {{first_name}},\n\nI noticed {{company}} recently expanded into {{company_industry}}...', openRate: 64, replyRate: 12, meetings: 8, sent: 142 },
+  { id: 2, name: 'LinkedIn Connection — Warm', type: 'LinkedIn', owner: 'Sales', subject: '', body: 'Hi {{first_name}}, came across your work at {{company}} — impressed by {{recent_achievement}}.', openRate: 42, replyRate: 18, meetings: 12, sent: 386 },
+  { id: 3, name: 'Follow-Up After Demo', type: 'Email', owner: 'Sales', subject: 'Re: Our conversation about {{use_case}}', body: 'Thanks for the time today, {{first_name}}.\n\nBased on what you shared about {{pain_point}}...', openRate: 72, replyRate: 24, meetings: 18, sent: 89 },
+  { id: 4, name: 'Cold Call Script — Discovery', type: 'Call Script', owner: 'Sales Ops', subject: '', body: 'Opening: "Hi {{first_name}}, this is {{sender_name}} from {{sender_company}}..."\nPurpose: Identify pain point around {{pain_point}}', openRate: 28, replyRate: 14, meetings: 22, sent: 210 },
+  { id: 5, name: 'Breakup Email', type: 'Email', owner: 'Sales', subject: 'Closing the loop, {{first_name}}', body: '{{first_name}}, I\'ve reached out a few times and haven\'t heard back...', openRate: 45, replyRate: 6, meetings: 4, sent: 298 },
 ]
 
-const tabs = ['All', 'Email', 'LinkedIn', 'Call Script']
-const badgeClass = { 'Top Performer': 'badge-green', 'High Volume': 'badge-blue', 'AI Enhanced': 'badge-purple', 'Standard': 'badge-gray', 'Needs Review': 'badge-yellow' }
+const templateStarters = [
+  'Create an intro email for VP of Sales',
+  'Write a follow-up for someone who opened but didn\'t reply',
+  'Generate a LinkedIn connection message',
+  'Create a breakup email with urgency',
+  'Improve my open rate — rewrite the subject line',
+  'Make this template shorter and more direct',
+]
 
 export default function Templates() {
   const [templates, setTemplates] = useState(initialTemplates)
-  const [activeTab, setActiveTab] = useState('All')
-  const [search, setSearch] = useState('')
-  const [editorMode, setEditorMode] = useState(null) // null | 'create' | 'edit'
+  const [editorMode, setEditorMode] = useState(null)
   const [editingTemplate, setEditingTemplate] = useState(null)
+  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'I can help you create and optimize templates. Ask me to generate emails, LinkedIn messages, call scripts, or improve existing ones.' }])
+  const [chatInput, setChatInput] = useState('')
+  const chatEndRef = useRef(null)
 
-  const filtered = templates.filter(t => {
-    const matchTab = activeTab === 'All' || t.type === activeTab
-    const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) || t.owner.toLowerCase().includes(search.toLowerCase())
-    return matchTab && matchSearch
-  })
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
-  const openCreate = () => { setEditingTemplate(null); setEditorMode('create') }
+  const handleChat = () => {
+    if (!chatInput.trim()) return
+    const msg = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }])
+    setChatInput('')
+    const lower = msg.toLowerCase()
+
+    setTimeout(() => {
+      let reply = ''
+      if (lower.includes('intro') || lower.includes('cold email') || (lower.includes('create') && lower.includes('email'))) {
+        const persona = lower.includes('vp') ? 'VP' : lower.includes('cto') ? 'CTO' : lower.includes('cmo') ? 'CMO' : 'decision-maker'
+        const newTpl = { id: Date.now(), name: `AI: Intro Email — ${persona}`, type: 'Email', owner: 'AI Generated', subject: `Quick thought on {{company_industry}}, {{first_name}}`, body: `Hi {{first_name}},\n\nI came across {{company}} and noticed {{trigger_event}}. Many ${persona}s in {{company_industry}} are dealing with {{pain_point}} right now.\n\nWe helped {{similar_company}} achieve {{result}} — thought it might resonate.\n\nWorth a 15-min chat?\n\n{{sender_name}}`, openRate: 0, replyRate: 0, meetings: 0, sent: 0 }
+        setTemplates(prev => [newTpl, ...prev])
+        reply = `Created "${newTpl.name}"! It's now at the top of your template list. You can click "Edit" to refine it with the full editor and variable panel.`
+      } else if (lower.includes('linkedin') || lower.includes('connection')) {
+        const newTpl = { id: Date.now(), name: 'AI: LinkedIn Connect — Personalized', type: 'LinkedIn', owner: 'AI Generated', subject: '', body: `Hi {{first_name}}, noticed your work at {{company}} — particularly {{recent_achievement}}. I help teams in {{company_industry}} with {{use_case}}. Would love to connect.`, openRate: 0, replyRate: 0, meetings: 0, sent: 0 }
+        setTemplates(prev => [newTpl, ...prev])
+        reply = 'Created a personalized LinkedIn connection template! It references their recent achievement and ties it to your value prop.'
+      } else if (lower.includes('breakup') || lower.includes('final')) {
+        const newTpl = { id: Date.now(), name: 'AI: Breakup — Closing Loop', type: 'Email', owner: 'AI Generated', subject: `Closing the loop, {{first_name}}`, body: `{{first_name}},\n\nI've reached out a few times without hearing back — totally understand if the timing isn't right.\n\nI'll close this out, but if {{pain_point}} becomes a priority, my door's open.\n\nWishing you and {{company}} all the best.\n\n{{sender_name}}`, openRate: 0, replyRate: 0, meetings: 0, sent: 0 }
+        setTemplates(prev => [newTpl, ...prev])
+        reply = 'Created a breakup email template. It closes the loop gracefully while leaving the door open.'
+      } else if (lower.includes('follow') || lower.includes('opened')) {
+        const newTpl = { id: Date.now(), name: 'AI: Follow-up — Opened No Reply', type: 'Email', owner: 'AI Generated', subject: `Re: {{previous_subject}}`, body: `{{first_name}},\n\nI noticed you had a chance to look at my previous note. Wanted to add one thought:\n\n{{personalized_opener}}\n\nWould {{meeting_times}} work for a quick chat?\n\n{{sender_name}}`, openRate: 0, replyRate: 0, meetings: 0, sent: 0 }
+        setTemplates(prev => [newTpl, ...prev])
+        reply = 'Created a follow-up template for prospects who opened but didn\'t reply. It acknowledges the open signal without being pushy.'
+      } else if (lower.includes('improve') || lower.includes('rewrite') || lower.includes('shorter')) {
+        reply = 'To improve a specific template, click "Edit" on that template to open the full editor. I\'ll have the variable panel ready for you. Or tell me which template name and I\'ll suggest improvements here.'
+      } else {
+        reply = "I can help with templates! Try:\n• \"Create an intro email for VPs\"\n• \"Write a LinkedIn connection message\"\n• \"Create a breakup email\"\n• \"Generate a follow-up for opened-no-reply\"\n\nOr click Edit on any template to use the full editor with the variable panel."
+      }
+      setChatMessages(prev => [...prev, { role: 'ai', text: reply }])
+    }, 500)
+  }
+
   const openEdit = (t) => { setEditingTemplate(t); setEditorMode('edit') }
-
   const handleSave = (data) => {
     if (editorMode === 'edit' && editingTemplate) {
       setTemplates(templates.map(t => t.id === editingTemplate.id ? { ...t, ...data } : t))
     } else {
-      setTemplates([...templates, { id: Date.now(), ...data, cadences: 0, openRate: 0, replyRate: 0, meetings: 0, sent: 0, badge: 'Standard' }])
+      setTemplates([{ id: Date.now(), ...data, openRate: 0, replyRate: 0, meetings: 0, sent: 0 }, ...templates])
     }
-    setEditorMode(null)
-    setEditingTemplate(null)
+    setEditorMode(null); setEditingTemplate(null)
   }
 
-  const handleCancel = () => { setEditorMode(null); setEditingTemplate(null) }
-  const deleteTemplate = (id) => setTemplates(templates.filter(t => t.id !== id))
-
-  // If in editor mode, show full-page editor
-  if (editorMode) {
-    return <TemplateEditor template={editingTemplate} onSave={handleSave} onCancel={handleCancel} />
-  }
+  if (editorMode) return <TemplateEditor template={editingTemplate} onSave={handleSave} onCancel={() => { setEditorMode(null); setEditingTemplate(null) }} />
 
   return (
-    <div>
-      <div className="topbar">
-        <h2>Templates</h2>
-        <div className="actions"><button className="btn btn-primary" onClick={openCreate}>+ Create Template</button></div>
+    <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100vh' }}>
+      {/* LEFT: Copilot */}
+      <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Template Copilot</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Generate and refine templates with AI</div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {chatMessages.map((m, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+        {chatMessages.length <= 1 && (
+          <div style={{ padding: '0 14px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Suggestions</div>
+            {templateStarters.slice(0, 4).map((s, i) => (
+              <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '7px 11px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 11, color: '#475569', cursor: 'pointer' }}>{s}</button>
+            ))}
+          </div>
+        )}
+        <div style={{ padding: '10px 14px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
+          <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
+          <button className="btn btn-primary" onClick={handleChat} style={{ padding: '9px 12px', fontSize: 12 }}>Send</button>
+        </div>
       </div>
 
-      <div style={{ padding: 24 }}>
-        <div className="tabs">
-          {tabs.map(tab => (
-            <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>{tab}</button>
+      {/* RIGHT: Template List */}
+      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="topbar" style={{ position: 'static' }}>
+          <h2 style={{ fontSize: 15 }}>Templates</h2>
+          <button className="btn btn-primary" onClick={() => { setEditingTemplate(null); setEditorMode('create') }}>+ Create Manually</button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
+          {templates.map(t => (
+            <div key={t.id} className="template-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="name">{t.name}</div>
+                  <div className="meta">{t.type} — {t.owner}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button className="btn btn-sm" onClick={() => openEdit(t)}>Edit</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => setTemplates(templates.filter(x => x.id !== t.id))}>×</button>
+                </div>
+              </div>
+              <div className="metrics">
+                <div className="metric"><div className="val">{t.openRate}%</div><div className="lbl">Open</div></div>
+                <div className="metric"><div className="val">{t.replyRate}%</div><div className="lbl">Reply</div></div>
+                <div className="metric"><div className="val">{t.meetings}</div><div className="lbl">Meetings</div></div>
+                <div className="metric"><div className="val">{t.sent}</div><div className="lbl">Sent</div></div>
+              </div>
+              {t.body && <div className="variant" style={{ marginTop: 10 }}>{t.body.substring(0, 100)}...</div>}
+            </div>
           ))}
         </div>
-
-        <input className="search-box" placeholder="Search templates by name or owner..." value={search} onChange={e => setSearch(e.target.value)} style={{ marginBottom: 20 }} />
-
-        {filtered.map(t => (
-          <div key={t.id} className="template-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div className="name">{t.name}</div>
-                <div className="meta">{t.type} — {t.owner} — Used in {t.cadences} cadences</div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span className={`badge ${badgeClass[t.badge] || 'badge-gray'}`}>{t.badge}</span>
-                <button className="btn btn-sm" onClick={() => openEdit(t)}>Edit</button>
-                <button className="btn btn-sm btn-danger" onClick={() => deleteTemplate(t.id)}>×</button>
-              </div>
-            </div>
-            <div className="metrics">
-              <div className="metric"><div className="val">{t.openRate}%</div><div className="lbl">Open Rate</div></div>
-              <div className="metric"><div className="val">{t.replyRate}%</div><div className="lbl">Reply Rate</div></div>
-              <div className="metric"><div className="val">{t.meetings}</div><div className="lbl">Meetings</div></div>
-              <div className="metric"><div className="val">{t.sent}</div><div className="lbl">Times Sent</div></div>
-            </div>
-            {t.body && (
-              <div className="variant" style={{ marginTop: 12, maxHeight: 60, overflow: 'hidden' }}>
-                {t.body.substring(0, 120)}...
-              </div>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   )
