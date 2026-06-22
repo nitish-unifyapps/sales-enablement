@@ -24,6 +24,12 @@ export default function SuccessPlan() {
   const [rules, setRules] = useState(initialMetricRules)
   const [milestones, setMilestones] = useState(initialMilestones)
   const [copilotOpen, setCopilotOpen] = useState(true)
+  const [showRuleModal, setShowRuleModal] = useState(false)
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false)
+  const [editingRule, setEditingRule] = useState(null)
+  const [editingMilestone, setEditingMilestone] = useState(null)
+  const [ruleForm, setRuleForm] = useState({ name: '', source: 'sequence', metric: '', operator: '>=', threshold: 0, unit: '%', period: 'weekly' })
+  const [milestoneForm, setMilestoneForm] = useState({ title: '', assignee: '', target: '', priority: 'medium' })
   const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'I can help manage your success plan. Ask me about metric status, add new rules, or check milestone progress.' }])
   const [chatInput, setChatInput] = useState('')
   const chatEndRef = useRef(null)
@@ -109,11 +115,11 @@ export default function SuccessPlan() {
                 <div key={r.id} style={{ padding: 16, background: '#fff', border: `1px solid ${met ? '#dcfce7' : '#e5e7eb'}`, borderRadius: 10, borderLeft: `4px solid ${met ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <span style={{ fontSize: 12, fontWeight: 600 }}>{r.name}</span>
-                    <span style={{ fontSize: 9, color: '#94a3b8' }}>{r.period}</span>
+                    <span style={{ fontSize: 9, color: '#94a3b8' }}>{r.period} • {r.source}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
                     <span style={{ fontSize: 20, fontWeight: 800 }}>{fmtVal(r.current, r.unit)}</span>
-                    <span style={{ fontSize: 11, color: '#94a3b8' }}>/ {fmtVal(r.threshold, r.unit)}</span>
+                    <span style={{ fontSize: 11, color: '#94a3b8' }}>{r.operator} {fmtVal(r.threshold, r.unit)}</span>
                   </div>
                   <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${pct}%`, background: met ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626', borderRadius: 3 }} />
@@ -123,27 +129,104 @@ export default function SuccessPlan() {
             })}
           </div>
 
+          {/* Metric Rules Table */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700 }}>Metric Rules</h3>
+              <button className="btn btn-sm btn-primary" onClick={() => setShowRuleModal(true)}>+ Add Rule</button>
+            </div>
+            <table>
+              <thead><tr><th>Metric</th><th>Rule</th><th>Source</th><th>Period</th><th>Current</th><th>Target</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {rules.map(r => (
+                  <tr key={r.id}>
+                    <td><strong>{r.name}</strong></td>
+                    <td style={{ fontSize: 11 }}><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{r.metric} {r.operator} {fmtVal(r.threshold, r.unit)}</code></td>
+                    <td><span className={`badge ${r.source === 'sequence' ? 'badge-blue' : 'badge-purple'}`}>{r.source}</span></td>
+                    <td style={{ fontSize: 12 }}>{r.period}</td>
+                    <td style={{ fontWeight: 600 }}>{fmtVal(r.current, r.unit)}</td>
+                    <td style={{ color: '#64748b' }}>{fmtVal(r.threshold, r.unit)}</td>
+                    <td><span className={`badge ${r.status === 'met' ? 'badge-green' : 'badge-red'}`}>{r.status === 'met' ? 'Met' : 'Below'}</span></td>
+                    <td><button className="btn btn-sm" onClick={() => { setEditingRule(r); setRuleForm({ name: r.name, source: r.source, metric: r.metric, operator: r.operator, threshold: r.threshold, unit: r.unit, period: r.period }); setShowRuleModal(true) }}>Edit</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
           {/* Milestones */}
           <div className="card">
             <div className="card-header">
               <h3>Milestones ({milestones.filter(m => m.status === 'done').length}/{milestones.length})</h3>
-              <div style={{ width: 100, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${(milestones.filter(m => m.status === 'done').length / milestones.length) * 100}%`, background: '#16a34a', borderRadius: 3 }} />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ width: 100, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${(milestones.filter(m => m.status === 'done').length / milestones.length) * 100}%`, background: '#16a34a', borderRadius: 3 }} />
+                </div>
+                <button className="btn btn-sm btn-primary" onClick={() => { setEditingMilestone(null); setMilestoneForm({ title: '', assignee: '', target: '', priority: 'medium' }); setShowMilestoneModal(true) }}>+ Add</button>
               </div>
             </div>
-            {milestones.map(m => (
-              <div key={m.id} className="milestone-item">
-                <div className={`checkbox ${m.status}`} onClick={() => cycleStatus(m.id)}>{m.status === 'done' ? '✓' : m.status === 'partial' ? '◐' : ''}</div>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>{m.title}</span>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{m.assignee} • {m.target}</div>
+            {milestones.map(m => {
+              const overdue = m.status !== 'done' && new Date(m.target) < new Date()
+              return (
+                <div key={m.id} className="milestone-item" style={{ borderColor: overdue ? '#fecaca' : undefined }}>
+                  <div className={`checkbox ${m.status}`} onClick={() => cycleStatus(m.id)}>{m.status === 'done' ? '✓' : m.status === 'partial' ? '◐' : ''}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{m.title}</span>
+                      {overdue && <span className="badge badge-red" style={{ fontSize: 9 }}>Overdue</span>}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{m.assignee} • {m.target}</div>
+                  </div>
+                  <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: m.priority === 'critical' ? '#fee2e2' : m.priority === 'high' ? '#fef9c3' : '#f1f5f9', color: m.priority === 'critical' ? '#dc2626' : m.priority === 'high' ? '#a16207' : '#64748b', fontWeight: 600 }}>{m.priority}</span>
+                  <button className="btn btn-sm" onClick={() => { setEditingMilestone(m); setMilestoneForm({ title: m.title, assignee: m.assignee, target: m.target, priority: m.priority }); setShowMilestoneModal(true) }}>Edit</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => setMilestones(milestones.filter(x => x.id !== m.id))}>×</button>
                 </div>
-                <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: m.priority === 'critical' ? '#fee2e2' : m.priority === 'high' ? '#fef9c3' : '#f1f5f9', color: m.priority === 'critical' ? '#dc2626' : m.priority === 'high' ? '#a16207' : '#64748b', fontWeight: 600 }}>{m.priority}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
+
+      {/* Rule Modal */}
+      {showRuleModal && (
+        <div className="modal-backdrop" onClick={() => setShowRuleModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>{editingRule ? 'Edit Metric Rule' : 'Add Metric Rule'}</h3>
+            <div className="form-group"><label>Name</label><input value={ruleForm.name} onChange={e => setRuleForm({ ...ruleForm, name: e.target.value })} placeholder="e.g. Reply Rate Target" /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group"><label>Source</label><select value={ruleForm.source} onChange={e => setRuleForm({ ...ruleForm, source: e.target.value })}><option value="sequence">Sequence</option><option value="account">Account</option></select></div>
+              <div className="form-group"><label>Metric</label><input value={ruleForm.metric} onChange={e => setRuleForm({ ...ruleForm, metric: e.target.value })} placeholder="e.g. reply_rate" /></div>
+              <div className="form-group"><label>Operator</label><select value={ruleForm.operator} onChange={e => setRuleForm({ ...ruleForm, operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value=">">{'>'}</option><option value="<">{'<'}</option></select></div>
+              <div className="form-group"><label>Threshold</label><input type="number" value={ruleForm.threshold} onChange={e => setRuleForm({ ...ruleForm, threshold: parseFloat(e.target.value) || 0 })} /></div>
+              <div className="form-group"><label>Unit</label><select value={ruleForm.unit} onChange={e => setRuleForm({ ...ruleForm, unit: e.target.value })}><option value="%">%</option><option value="$">$</option><option value="">Count</option><option value="hrs">Hours</option></select></div>
+              <div className="form-group"><label>Period</label><select value={ruleForm.period} onChange={e => setRuleForm({ ...ruleForm, period: e.target.value })}><option>daily</option><option>weekly</option><option>monthly</option><option>quarterly</option></select></div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowRuleModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => { if (!ruleForm.name) return; if (editingRule) { setRules(rules.map(r => r.id === editingRule.id ? { ...r, ...ruleForm } : r)) } else { setRules([...rules, { id: Date.now(), ...ruleForm, current: 0, status: 'below' }]) } setShowRuleModal(false); setEditingRule(null) }}>{editingRule ? 'Save' : 'Add'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Milestone Modal */}
+      {showMilestoneModal && (
+        <div className="modal-backdrop" onClick={() => setShowMilestoneModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>{editingMilestone ? 'Edit Milestone' : 'Add Milestone'}</h3>
+            <div className="form-group"><label>Title</label><input value={milestoneForm.title} onChange={e => setMilestoneForm({ ...milestoneForm, title: e.target.value })} placeholder="What needs to be achieved?" /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group"><label>Owner</label><input value={milestoneForm.assignee} onChange={e => setMilestoneForm({ ...milestoneForm, assignee: e.target.value })} /></div>
+              <div className="form-group"><label>Target Date</label><input type="date" value={milestoneForm.target} onChange={e => setMilestoneForm({ ...milestoneForm, target: e.target.value })} /></div>
+              <div className="form-group"><label>Priority</label><select value={milestoneForm.priority} onChange={e => setMilestoneForm({ ...milestoneForm, priority: e.target.value })}><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowMilestoneModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => { if (!milestoneForm.title) return; if (editingMilestone) { setMilestones(milestones.map(m => m.id === editingMilestone.id ? { ...m, ...milestoneForm } : m)) } else { setMilestones([...milestones, { id: Date.now(), ...milestoneForm, status: 'pending' }]) } setShowMilestoneModal(false); setEditingMilestone(null) }}>{editingMilestone ? 'Save' : 'Add'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
