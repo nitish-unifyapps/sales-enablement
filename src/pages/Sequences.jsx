@@ -160,7 +160,7 @@ export default function Sequences() {
   const changeProspectSeq = (pid, sid) => setProspects(prospects.map(p => p.id === pid ? { ...p, sequenceId: parseInt(sid), currentStep: 1 } : p))
   const currentCtx = copilotContexts[builderTab] || copilotContexts.steps
 
-  // Recursive tree renderer — fully horizontal
+  // Recursive tree renderer — vertical top-to-bottom
   const renderNode = (node) => {
     if (!node) return null
     const st = stepTypes.find(t => t.type === node.type) || { label: 'Trigger', cat: 'auto' }
@@ -168,35 +168,33 @@ export default function Sequences() {
     const isTrigger = node.type === 'trigger'
     const isSelected = selectedStep?.id === node.id
 
-    // Node box
-    const nodeEl = (
-      <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ padding: isTrigger ? '8px 16px' : '10px 12px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 20 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: isTrigger ? 80 : 110, textAlign: 'center', boxShadow: isSelected ? '0 3px 10px rgba(99,102,241,.12)' : '0 1px 3px rgba(0,0,0,.03)', flexShrink: 0 }}>
-        {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>{st.label}</div>}
-        <div style={{ fontSize: isTrigger ? 11 : 11, fontWeight: 600 }}>{node.title}</div>
-        {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>{node.desc.substring(0, 30)}</div>}
-        {node.day > 0 && !isTrigger && <div style={{ fontSize: 8, color: '#6366f1', marginTop: 3 }}>Day {node.day}</div>}
+    const nodeBox = (
+      <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ padding: isTrigger ? '10px 20px' : '12px 16px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 24 : isCondition ? 12 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: 140, textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.12)' : '0 1px 4px rgba(0,0,0,.04)' }}>
+        {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>{st.label}</div>}
+        <div style={{ fontSize: 12, fontWeight: 600 }}>{node.title}</div>
+        {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{node.desc.substring(0, 40)}</div>}
+        {node.day > 0 && !isTrigger && <div style={{ fontSize: 9, color: '#6366f1', marginTop: 4 }}>Day {node.day}</div>}
       </div>
     )
 
-    // For condition nodes: render node, then horizontal connector, then branches stacked vertically, each branch going right
+    // Condition: show node, then split into columns side by side
     if (isCondition && node.branches) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {nodeEl}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 0 }}>
-            {/* Vertical line from node to branches */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {nodeBox}
+          {/* Vertical line down from condition */}
+          <div style={{ width: 2, height: 20, background: '#d1d5db' }} />
+          {/* Branches side by side */}
+          <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
             {node.branches.map((branch, bi) => (
-              <div key={bi} style={{ display: 'flex', alignItems: 'center', marginTop: bi > 0 ? 12 : 0 }}>
-                {/* Horizontal connector line from condition to branch label */}
-                <svg width="40" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="40" y2="1" stroke={branch.color} strokeWidth="2" /></svg>
+              <div key={bi} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {/* Branch label */}
-                <span style={{ fontSize: 9, fontWeight: 700, color: branch.color, padding: '2px 6px', background: branch.color + '18', borderRadius: 4, flexShrink: 0 }}>{branch.label}</span>
-                {/* Connector to children */}
-                <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke={branch.color} strokeWidth="2" /></svg>
-                {/* Branch children */}
-                {branch.next.map((child, ci) => (
-                  <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
-                    {ci > 0 && <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>}
+                <span style={{ fontSize: 10, fontWeight: 700, color: branch.color, background: branch.color + '15', padding: '3px 10px', borderRadius: 10, marginBottom: 8 }}>{branch.label}</span>
+                {/* Vertical connector */}
+                <div style={{ width: 2, height: 12, background: branch.color }} />
+                {/* Branch children vertically */}
+                {branch.next.map((child) => (
+                  <div key={child.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     {renderNode(child)}
                   </div>
                 ))}
@@ -207,15 +205,14 @@ export default function Sequences() {
       )
     }
 
-    // For regular nodes: render node, connector, then children
+    // Regular node: render node, then connector, then children vertically
     if (node.next && node.next.length > 0) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {nodeEl}
-          <svg width="28" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="28" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>
-          {node.next.map((child, ci) => (
-            <div key={child.id} style={{ display: 'flex', alignItems: 'center' }}>
-              {ci > 0 && <svg width="20" height="2" style={{ flexShrink: 0 }}><line x1="0" y1="1" x2="20" y2="1" stroke="#d1d5db" strokeWidth="2" /></svg>}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {nodeBox}
+          <div style={{ width: 2, height: 20, background: '#d1d5db' }} />
+          {node.next.map((child) => (
+            <div key={child.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {renderNode(child)}
             </div>
           ))}
@@ -223,8 +220,8 @@ export default function Sequences() {
       )
     }
 
-    // Leaf node
-    return nodeEl
+    // Leaf
+    return <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>{nodeBox}</div>
   }
 
 
@@ -319,7 +316,7 @@ export default function Sequences() {
             {/* Canvas area */}
             <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
               {builderTab === 'steps' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: '100%', padding: '40px 32px', minWidth: 'fit-content' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 32px', minHeight: '100%' }}>
                   {renderNode(steps)}
                 </div>
               )}
