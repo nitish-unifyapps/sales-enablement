@@ -52,6 +52,21 @@ const initialRules = [
   { id: 7, trigger: 'No engagement after all steps', action: 'Move to re-engagement cadence', enabled: true },
 ]
 
+const initialProspects = [
+  { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP of Sales', email: 'sarah@acme.com', state: 'active', currentStep: 3, lastContacted: '2 hours ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 15', owner: 'You' },
+  { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', email: 'james@beta.io', state: 'active', currentStep: 5, lastContacted: 'Yesterday', opened: true, clicked: false, replied: false, addedAt: 'Jun 12', owner: 'You' },
+  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director of Ops', email: 'mike@delta.co', state: 'finished_replied', currentStep: 2, lastContacted: '3 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 10', owner: 'You' },
+  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', email: 'lisa@omega.com', state: 'paused', currentStep: 4, lastContacted: '5 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 14', owner: 'You' },
+  { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', email: 'tom@zeta.io', state: 'active', currentStep: 1, lastContacted: 'Today', opened: false, clicked: false, replied: false, addedAt: 'Jun 20', owner: 'Mike T.' },
+  { id: 6, name: 'Anna Lee', company: 'Sigma HR', title: 'VP Engineering', email: 'anna@sigma.com', state: 'bounced', currentStep: 1, lastContacted: 'Jun 16', opened: false, clicked: false, replied: false, addedAt: 'Jun 16', owner: 'You' },
+  { id: 7, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', email: 'ben@alpha.co', state: 'active', currentStep: 7, lastContacted: '1 day ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 08', owner: 'Mike T.' },
+  { id: 8, name: 'Kim Yu', company: 'Theta Dev', title: 'Engineering Lead', email: 'kim@theta.dev', state: 'finished_no_reply', currentStep: 10, lastContacted: 'Jun 10', opened: true, clicked: false, replied: false, addedAt: 'Jun 01', owner: 'You' },
+  { id: 9, name: 'Dave Miller', company: 'Kappa Mfg', title: 'COO', email: 'dave@kappa.com', state: 'paused_ooo', currentStep: 4, lastContacted: '4 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 11', owner: 'You' },
+  { id: 10, name: 'Ellen Marsh', company: 'Nu Corp', title: 'VP Sales', email: 'ellen@nu.co', state: 'opted_out', currentStep: 2, lastContacted: 'Jun 13', opened: true, clicked: false, replied: false, addedAt: 'Jun 13', owner: 'Mike T.' },
+  { id: 11, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Director Sales', email: 'raj@lambda.io', state: 'active', currentStep: 6, lastContacted: 'Today', opened: true, clicked: true, replied: false, addedAt: 'Jun 09', owner: 'You' },
+  { id: 12, name: 'Nina Scott', company: 'Phi Analytics', title: 'CFO', email: 'nina@phi.com', state: 'finished_replied', currentStep: 3, lastContacted: '2 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 07', owner: 'Mike T.' },
+]
+
 
 export default function Sequences() {
   const [view, setView] = useState('list')
@@ -70,6 +85,8 @@ export default function Sequences() {
   const [dragIdx, setDragIdx] = useState(null)
   const [templatePickFor, setTemplatePickFor] = useState(null)
   const [builderTab, setBuilderTab] = useState('steps')
+  const [prospects, setProspects] = useState(initialProspects)
+  const [prospectFilter, setProspectFilter] = useState('all')
 
   const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('steps') }
   const backToList = () => { setSelectedSeq(null); setView('list') }
@@ -186,6 +203,7 @@ export default function Sequences() {
             <div className="actions">
               <div className="view-toggle">
                 <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Steps</button>
+                <button className={builderTab === 'prospects' ? 'active' : ''} onClick={() => setBuilderTab('prospects')}>Prospects</button>
                 <button className={builderTab === 'rules' ? 'active' : ''} onClick={() => setBuilderTab('rules')}>Rules</button>
                 <button className={builderTab === 'settings' ? 'active' : ''} onClick={() => setBuilderTab('settings')}>Settings</button>
               </div>
@@ -268,6 +286,92 @@ export default function Sequences() {
                 </div>
               </>
             )}
+
+            {/* PROSPECTS TAB */}
+            {builderTab === 'prospects' && (() => {
+              const stateLabels = { active: 'Active', paused: 'Paused', paused_ooo: 'Paused (OOO)', bounced: 'Bounced', finished_replied: 'Finished (Replied)', finished_no_reply: 'Finished (No Reply)', opted_out: 'Opted Out' }
+              const stateBadge = { active: 'badge-green', paused: 'badge-yellow', paused_ooo: 'badge-yellow', bounced: 'badge-red', finished_replied: 'badge-blue', finished_no_reply: 'badge-gray', opted_out: 'badge-red' }
+              const filteredProspects = prospects.filter(p => prospectFilter === 'all' || p.state === prospectFilter || (prospectFilter === 'finished' && p.state.startsWith('finished')))
+              const counts = { all: prospects.length, active: prospects.filter(p => p.state === 'active').length, paused: prospects.filter(p => p.state.startsWith('paused')).length, finished: prospects.filter(p => p.state.startsWith('finished')).length, bounced: prospects.filter(p => p.state === 'bounced').length, opted_out: prospects.filter(p => p.state === 'opted_out').length }
+              return (
+                <>
+                  {/* Prospect overview stats */}
+                  <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                    <div className="stat-box"><div className="value">{prospects.length}</div><div className="label">Total Prospects</div></div>
+                    <div className="stat-box"><div className="value">{counts.active}</div><div className="label">Active</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.replied).length}</div><div className="label">Replied</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.opened).length}</div><div className="label">Opened</div></div>
+                    <div className="stat-box"><div className="value">{prospects.filter(p => p.clicked).length}</div><div className="label">Clicked</div></div>
+                  </div>
+
+                  {/* State filter tabs */}
+                  <div className="card" style={{ padding: '12px 20px' }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {[['all', `All (${counts.all})`], ['active', `Active (${counts.active})`], ['paused', `Paused (${counts.paused})`], ['finished', `Finished (${counts.finished})`], ['bounced', `Bounced (${counts.bounced})`], ['opted_out', `Opted Out (${counts.opted_out})`]].map(([key, label]) => (
+                        <button key={key} className={`btn btn-sm ${prospectFilter === key ? 'btn-primary' : ''}`} onClick={() => setProspectFilter(key)}>{label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Prospects table */}
+                  <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table>
+                      <thead>
+                        <tr><th>Prospect</th><th>Company</th><th>State</th><th>Current Step</th><th>Last Contacted</th><th>Opened</th><th>Clicked</th><th>Replied</th><th>Added</th><th></th></tr>
+                      </thead>
+                      <tbody>
+                        {filteredProspects.map(p => (
+                          <tr key={p.id}>
+                            <td>
+                              <div><strong>{p.name}</strong></div>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title} — {p.email}</div>
+                            </td>
+                            <td>{p.company}</td>
+                            <td><span className={`badge ${stateBadge[p.state] || 'badge-gray'}`}>{stateLabels[p.state] || p.state}</span></td>
+                            <td style={{ fontWeight: 500 }}>Step {p.currentStep}/{steps.length}</td>
+                            <td style={{ fontSize: 12, color: '#64748b' }}>{p.lastContacted}</td>
+                            <td style={{ textAlign: 'center' }}>{p.opened ? '●' : '○'}</td>
+                            <td style={{ textAlign: 'center' }}>{p.clicked ? '●' : '○'}</td>
+                            <td style={{ textAlign: 'center', color: p.replied ? '#16a34a' : 'inherit', fontWeight: p.replied ? 700 : 400 }}>{p.replied ? '●' : '○'}</td>
+                            <td style={{ fontSize: 11, color: '#94a3b8' }}>{p.addedAt}</td>
+                            <td>
+                              <select defaultValue="" onChange={e => { if (e.target.value === 'pause') setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'paused' } : pr)); if (e.target.value === 'resume') setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'active' } : pr)); if (e.target.value === 'finish') setProspects(prospects.map(pr => pr.id === p.id ? { ...pr, state: 'finished_no_reply' } : pr)); if (e.target.value === 'remove') setProspects(prospects.filter(pr => pr.id !== p.id)); e.target.value = '' }} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 8px', fontSize: 11 }}>
+                                <option value="">Actions</option>
+                                {p.state === 'active' && <option value="pause">Pause</option>}
+                                {(p.state === 'paused' || p.state === 'paused_ooo') && <option value="resume">Resume</option>}
+                                <option value="finish">Mark Finished</option>
+                                <option value="remove">Remove</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Step-by-step engagement breakdown */}
+                  <div className="card">
+                    <div className="card-header"><h3>Engagement by Step</h3></div>
+                    {steps.map((step, idx) => {
+                      const atStep = prospects.filter(p => p.currentStep === idx + 1 && p.state === 'active').length
+                      const passedStep = prospects.filter(p => p.currentStep > idx + 1 || p.state.startsWith('finished')).length
+                      const total = prospects.length
+                      return (
+                        <div key={step.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                          <span style={{ width: 24, fontSize: 11, fontWeight: 700, color: '#64748b' }}>{idx + 1}</span>
+                          <span style={{ width: 160, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.title}</span>
+                          <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${total > 0 ? (passedStep / total) * 100 : 0}%`, background: '#6366f1', borderRadius: 3 }} />
+                          </div>
+                          <span style={{ width: 80, fontSize: 11, color: '#64748b', textAlign: 'right' }}>{passedStep} passed</span>
+                          <span style={{ width: 60, fontSize: 11, color: atStep > 0 ? '#6366f1' : '#94a3b8', fontWeight: atStep > 0 ? 600 : 400 }}>{atStep} here</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
 
             {/* RULES TAB */}
             {builderTab === 'rules' && (
