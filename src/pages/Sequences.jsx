@@ -59,18 +59,18 @@ const initialRules = [
 ]
 
 const initialProspects = [
-  { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP of Sales', email: 'sarah@acme.com', state: 'active', currentStep: 3, lastContacted: '2 hours ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 15', owner: 'You' },
-  { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', email: 'james@beta.io', state: 'active', currentStep: 5, lastContacted: 'Yesterday', opened: true, clicked: false, replied: false, addedAt: 'Jun 12', owner: 'You' },
-  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director of Ops', email: 'mike@delta.co', state: 'finished_replied', currentStep: 2, lastContacted: '3 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 10', owner: 'You' },
-  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', email: 'lisa@omega.com', state: 'paused', currentStep: 4, lastContacted: '5 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 14', owner: 'You' },
-  { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', email: 'tom@zeta.io', state: 'active', currentStep: 1, lastContacted: 'Today', opened: false, clicked: false, replied: false, addedAt: 'Jun 20', owner: 'Mike T.' },
-  { id: 6, name: 'Anna Lee', company: 'Sigma HR', title: 'VP Engineering', email: 'anna@sigma.com', state: 'bounced', currentStep: 1, lastContacted: 'Jun 16', opened: false, clicked: false, replied: false, addedAt: 'Jun 16', owner: 'You' },
-  { id: 7, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', email: 'ben@alpha.co', state: 'active', currentStep: 7, lastContacted: '1 day ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 08', owner: 'Mike T.' },
-  { id: 8, name: 'Kim Yu', company: 'Theta Dev', title: 'Engineering Lead', email: 'kim@theta.dev', state: 'finished_no_reply', currentStep: 10, lastContacted: 'Jun 10', opened: true, clicked: false, replied: false, addedAt: 'Jun 01', owner: 'You' },
-  { id: 9, name: 'Dave Miller', company: 'Kappa Mfg', title: 'COO', email: 'dave@kappa.com', state: 'paused_ooo', currentStep: 4, lastContacted: '4 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 11', owner: 'You' },
-  { id: 10, name: 'Ellen Marsh', company: 'Nu Corp', title: 'VP Sales', email: 'ellen@nu.co', state: 'opted_out', currentStep: 2, lastContacted: 'Jun 13', opened: true, clicked: false, replied: false, addedAt: 'Jun 13', owner: 'Mike T.' },
-  { id: 11, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Director Sales', email: 'raj@lambda.io', state: 'active', currentStep: 6, lastContacted: 'Today', opened: true, clicked: true, replied: false, addedAt: 'Jun 09', owner: 'You' },
-  { id: 12, name: 'Nina Scott', company: 'Phi Analytics', title: 'CFO', email: 'nina@phi.com', state: 'finished_replied', currentStep: 3, lastContacted: '2 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 07', owner: 'Mike T.' },
+  { id: 1, name: 'Sarah Chen', company: 'Acme Corp', title: 'VP of Sales', email: 'sarah@acme.com', state: 'active', currentStep: 3, lastContacted: '2 hours ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 15', owner: 'You', sequenceId: 1 },
+  { id: 2, name: 'James Park', company: 'Beta Inc', title: 'CTO', email: 'james@beta.io', state: 'active', currentStep: 5, lastContacted: 'Yesterday', opened: true, clicked: false, replied: false, addedAt: 'Jun 12', owner: 'You', sequenceId: 1 },
+  { id: 3, name: 'Mike Torres', company: 'Delta LLC', title: 'Director of Ops', email: 'mike@delta.co', state: 'finished_replied', currentStep: 2, lastContacted: '3 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 10', owner: 'You', sequenceId: 2 },
+  { id: 4, name: 'Lisa Wang', company: 'Omega Co', title: 'Head of Product', email: 'lisa@omega.com', state: 'paused', currentStep: 4, lastContacted: '5 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 14', owner: 'You', sequenceId: 1 },
+  { id: 5, name: 'Tom Harris', company: 'Zeta Tech', title: 'CEO', email: 'tom@zeta.io', state: 'active', currentStep: 1, lastContacted: 'Today', opened: false, clicked: false, replied: false, addedAt: 'Jun 20', owner: 'Mike T.', sequenceId: 3 },
+  { id: 6, name: 'Anna Lee', company: 'Sigma HR', title: 'VP Engineering', email: 'anna@sigma.com', state: 'bounced', currentStep: 1, lastContacted: 'Jun 16', opened: false, clicked: false, replied: false, addedAt: 'Jun 16', owner: 'You', sequenceId: 4 },
+  { id: 7, name: 'Ben Cross', company: 'Alpha Media', title: 'CMO', email: 'ben@alpha.co', state: 'active', currentStep: 7, lastContacted: '1 day ago', opened: true, clicked: true, replied: false, addedAt: 'Jun 08', owner: 'Mike T.', sequenceId: 2 },
+  { id: 8, name: 'Kim Yu', company: 'Theta Dev', title: 'Engineering Lead', email: 'kim@theta.dev', state: 'finished_no_reply', currentStep: 10, lastContacted: 'Jun 10', opened: true, clicked: false, replied: false, addedAt: 'Jun 01', owner: 'You', sequenceId: 5 },
+  { id: 9, name: 'Dave Miller', company: 'Kappa Mfg', title: 'COO', email: 'dave@kappa.com', state: 'paused_ooo', currentStep: 4, lastContacted: '4 days ago', opened: true, clicked: false, replied: false, addedAt: 'Jun 11', owner: 'You', sequenceId: 1 },
+  { id: 10, name: 'Ellen Marsh', company: 'Nu Corp', title: 'VP Sales', email: 'ellen@nu.co', state: 'opted_out', currentStep: 2, lastContacted: 'Jun 13', opened: true, clicked: false, replied: false, addedAt: 'Jun 13', owner: 'Mike T.', sequenceId: 6 },
+  { id: 11, name: 'Raj Patel', company: 'Lambda SaaS', title: 'Director Sales', email: 'raj@lambda.io', state: 'active', currentStep: 6, lastContacted: 'Today', opened: true, clicked: true, replied: false, addedAt: 'Jun 09', owner: 'You', sequenceId: 3 },
+  { id: 12, name: 'Nina Scott', company: 'Phi Analytics', title: 'CFO', email: 'nina@phi.com', state: 'finished_replied', currentStep: 3, lastContacted: '2 days ago', opened: true, clicked: true, replied: true, addedAt: 'Jun 07', owner: 'Mike T.', sequenceId: 7 },
 ]
 
 
@@ -93,6 +93,8 @@ export default function Sequences() {
   const [builderTab, setBuilderTab] = useState('steps')
   const [prospects, setProspects] = useState(initialProspects)
   const [prospectFilter, setProspectFilter] = useState('all')
+  const [showAddProspect, setShowAddProspect] = useState(false)
+  const [prospectForm, setProspectForm] = useState({ name: '', company: '', title: '', email: '' })
 
   const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('steps') }
   const backToList = () => { setSelectedSeq(null); setView('list') }
@@ -156,6 +158,15 @@ export default function Sequences() {
 
   const getStepType = (type) => stepTypes.find(t => t.type === type) || stepTypes[0]
   const getTemplate = (id) => sampleTemplates.find(t => t.id === id)
+
+  const addProspect = (seqId) => {
+    if (!prospectForm.name || !prospectForm.email) return
+    setProspects([...prospects, { id: Date.now(), ...prospectForm, state: 'active', currentStep: 1, lastContacted: 'Just added', opened: false, clicked: false, replied: false, addedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), owner: 'You', sequenceId: seqId || selectedSeq?.id || 1 }])
+    setShowAddProspect(false)
+    setProspectForm({ name: '', company: '', title: '', email: '' })
+  }
+  const removeProspect = (id) => setProspects(prospects.filter(p => p.id !== id))
+  const changeProspectSeq = (prospectId, newSeqId) => setProspects(prospects.map(p => p.id === prospectId ? { ...p, sequenceId: parseInt(newSeqId), currentStep: 1, state: 'active' } : p))
 
 
   return (
@@ -232,11 +243,11 @@ export default function Sequences() {
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700 }}>All Prospects in Sequences</h3>
-                <span style={{ fontSize: 12, color: '#64748b' }}>{prospects.length} prospects</span>
+                <button className="btn btn-sm btn-primary" onClick={() => setShowAddProspect(true)}>+ Add Prospect</button>
               </div>
               <table>
                 <thead>
-                  <tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Current Step</th><th>Last Contacted</th><th>Opened</th><th>Clicked</th><th>Replied</th><th>Owner</th></tr>
+                  <tr><th>Prospect</th><th>Company</th><th>Sequence</th><th>State</th><th>Step</th><th>Last Contacted</th><th>Opened</th><th>Clicked</th><th>Replied</th><th></th></tr>
                 </thead>
                 <tbody>
                   {prospects.map(p => {
@@ -249,14 +260,18 @@ export default function Sequences() {
                           <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.title}</div>
                         </td>
                         <td>{p.company}</td>
-                        <td style={{ fontSize: 12 }}>{sequences[p.id % sequences.length]?.name.substring(0, 30)}...</td>
+                        <td>
+                          <select value={p.sequenceId} onChange={e => changeProspectSeq(p.id, e.target.value)} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 6px', fontSize: 11, maxWidth: 160 }}>
+                            {sequences.map(s => <option key={s.id} value={s.id}>{s.name.substring(0, 28)}</option>)}
+                          </select>
+                        </td>
                         <td><span className={`badge ${stateBadge[p.state] || 'badge-gray'}`}>{stateLabels[p.state]}</span></td>
-                        <td style={{ fontWeight: 500 }}>Step {p.currentStep}/{steps.length}</td>
+                        <td style={{ fontWeight: 500, fontSize: 12 }}>{p.currentStep}/{steps.length}</td>
                         <td style={{ fontSize: 12, color: '#64748b' }}>{p.lastContacted}</td>
                         <td style={{ textAlign: 'center' }}>{p.opened ? '●' : '○'}</td>
                         <td style={{ textAlign: 'center' }}>{p.clicked ? '●' : '○'}</td>
                         <td style={{ textAlign: 'center', color: p.replied ? '#16a34a' : 'inherit' }}>{p.replied ? '●' : '○'}</td>
-                        <td style={{ fontSize: 12 }}>{p.owner}</td>
+                        <td><button className="btn btn-sm btn-danger" onClick={() => removeProspect(p.id)}>×</button></td>
                       </tr>
                     )
                   })}
@@ -372,21 +387,22 @@ export default function Sequences() {
               return (
                 <>
                   {/* Prospect overview stats */}
-                  <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-                    <div className="stat-box"><div className="value">{prospects.length}</div><div className="label">Total Prospects</div></div>
-                    <div className="stat-box"><div className="value">{counts.active}</div><div className="label">Active</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.replied).length}</div><div className="label">Replied</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.opened).length}</div><div className="label">Opened</div></div>
-                    <div className="stat-box"><div className="value">{prospects.filter(p => p.clicked).length}</div><div className="label">Clicked</div></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)', flex: 1, marginBottom: 0 }}>
+                      <div className="stat-box"><div className="value">{prospects.filter(p => p.sequenceId === selectedSeq?.id).length}</div><div className="label">In This Sequence</div></div>
+                      <div className="stat-box"><div className="value">{counts.active}</div><div className="label">Active</div></div>
+                      <div className="stat-box"><div className="value">{prospects.filter(p => p.replied).length}</div><div className="label">Replied</div></div>
+                      <div className="stat-box"><div className="value">{prospects.filter(p => p.opened).length}</div><div className="label">Opened</div></div>
+                      <div className="stat-box"><div className="value">{prospects.filter(p => p.clicked).length}</div><div className="label">Clicked</div></div>
+                    </div>
                   </div>
-
-                  {/* State filter tabs */}
-                  <div className="card" style={{ padding: '12px 20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {[['all', `All (${counts.all})`], ['active', `Active (${counts.active})`], ['paused', `Paused (${counts.paused})`], ['finished', `Finished (${counts.finished})`], ['bounced', `Bounced (${counts.bounced})`], ['opted_out', `Opted Out (${counts.opted_out})`]].map(([key, label]) => (
                         <button key={key} className={`btn btn-sm ${prospectFilter === key ? 'btn-primary' : ''}`} onClick={() => setProspectFilter(key)}>{label}</button>
                       ))}
                     </div>
+                    <button className="btn btn-sm btn-primary" onClick={() => setShowAddProspect(true)}>+ Add Prospect</button>
                   </div>
 
                   {/* Prospects table */}
@@ -730,6 +746,25 @@ export default function Sequences() {
                   <div style={{ fontSize: 12, color: '#475569', marginTop: 8, background: '#f8f9fb', padding: '8px 10px', borderRadius: 6, whiteSpace: 'pre-wrap', maxHeight: 60, overflow: 'hidden' }}>{tpl.body}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD PROSPECT MODAL */}
+      {showAddProspect && (
+        <div className="modal-backdrop" onClick={() => setShowAddProspect(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Add Prospect to Sequence</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group"><label>Name</label><input value={prospectForm.name} onChange={e => setProspectForm({ ...prospectForm, name: e.target.value })} placeholder="e.g. Sarah Chen" /></div>
+              <div className="form-group"><label>Email</label><input value={prospectForm.email} onChange={e => setProspectForm({ ...prospectForm, email: e.target.value })} placeholder="e.g. sarah@acme.com" /></div>
+              <div className="form-group"><label>Company</label><input value={prospectForm.company} onChange={e => setProspectForm({ ...prospectForm, company: e.target.value })} placeholder="e.g. Acme Corp" /></div>
+              <div className="form-group"><label>Title</label><input value={prospectForm.title} onChange={e => setProspectForm({ ...prospectForm, title: e.target.value })} placeholder="e.g. VP of Sales" /></div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowAddProspect(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => addProspect(selectedSeq?.id)}>Add to Sequence</button>
             </div>
           </div>
         </div>
