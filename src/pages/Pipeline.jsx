@@ -40,6 +40,18 @@ export default function Pipeline() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [dealForm, setDealForm] = useState({ name: '', company: '', contact: '', value: '', stage: 'discovery', owner: '', closeDate: '', source: 'Outbound', nextStep: '', tags: '' })
 
+  const [copilotOpen, setCopilotOpen] = useState(false)
+  const [copilotMessages, setCopilotMessages] = useState([])
+  const [copilotInput, setCopilotInput] = useState('')
+
+  const copilotStarters = ['Show at-risk deals', 'Move deal to negotiation', "What's my pipeline coverage?"]
+  const sendCopilot = (msg) => {
+    const text = msg || copilotInput
+    if (!text.trim()) return
+    setCopilotMessages(prev => [...prev, { role: 'user', text }, { role: 'ai', text: `Analyzing: "${text}"... This is a demo response. In production, this would connect to your AI backend.` }])
+    setCopilotInput('')
+  }
+
   const owners = ['All', ...new Set(deals.map(d => d.owner))]
   const sources = ['All', ...new Set(deals.map(d => d.source))]
 
@@ -89,9 +101,45 @@ export default function Pipeline() {
 
 
   return (
-    <div>
+    <div style={{ display: 'flex', height: '100%' }}>
+      {/* AI COPILOT SIDEBAR */}
+      <div style={{ width: copilotOpen ? 300 : 0, minWidth: copilotOpen ? 300 : 0, transition: 'all 0.2s', borderRight: copilotOpen ? '1px solid #e2e8f0' : 'none', display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden', flexShrink: 0 }}>
+        {copilotOpen && (
+          <>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>🤖 AI Copilot</span>
+              <button onClick={() => setCopilotOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {copilotMessages.length === 0 && (
+                <div style={{ padding: 12, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
+                  <p style={{ marginBottom: 12 }}>Ask me anything about your pipeline</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {copilotStarters.map(s => (
+                      <button key={s} onClick={() => sendCopilot(s)} style={{ padding: '8px 12px', fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', textAlign: 'left' }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {copilotMessages.map((m, i) => (
+                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, background: m.role === 'user' ? '#6366f1' : '#fff', color: m.role === 'user' ? '#fff' : '#1e293b', alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', border: m.role === 'ai' ? '1px solid #e2e8f0' : 'none' }}>{m.text}</div>
+              ))}
+            </div>
+            <div style={{ padding: 12, borderTop: '1px solid #e2e8f0', display: 'flex', gap: 6 }}>
+              <input value={copilotInput} onChange={e => setCopilotInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendCopilot()} placeholder="Ask about pipeline..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }} />
+              <button onClick={() => sendCopilot()} style={{ padding: '8px 12px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, cursor: 'pointer' }}>Send</button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
       <div className="topbar">
-        <h2>Pipeline Analytics & Reporting</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {!copilotOpen && <button onClick={() => setCopilotOpen(true)} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 13 }}>🤖</button>}
+          <h2>Pipeline Analytics & Reporting</h2>
+        </div>
         <div className="actions">
           <div className="view-toggle">
             <button className={view === 'dashboard' ? 'active' : ''} onClick={() => setView('dashboard')}>Dashboard</button>
@@ -124,7 +172,7 @@ export default function Pipeline() {
         {/* DASHBOARD VIEW */}
         {view === 'dashboard' && (
           <>
-            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
+            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)', marginBottom: 20 }}>
               <div className="stat-box"><div className="value">{fmt(totalPipeline)}</div><div className="label">Active Pipeline</div></div>
               <div className="stat-box"><div className="value">{fmt(weightedPipeline)}</div><div className="label">Weighted Pipeline</div></div>
               <div className="stat-box"><div className="value" style={{ color: '#16a34a' }}>{fmt(totalWon)}</div><div className="label">Closed Won</div></div>
@@ -133,83 +181,86 @@ export default function Pipeline() {
               <div className="stat-box"><div className="value" style={{ color: atRisk > 0 ? '#dc2626' : '#16a34a' }}>{atRisk}</div><div className="label">Deals at Risk</div></div>
             </div>
 
-            {/* Funnel */}
-            <div className="card">
-              <div className="card-header"><h3>Pipeline Funnel</h3></div>
-              {stageData.map((s, i) => {
-                const maxVal = Math.max(...stageData.map(x => x.total), 1)
-                const pct = (s.total / maxVal) * 100
-                const convRate = i > 0 && stageData[i-1].count > 0 ? Math.round((s.count / stageData[i-1].count) * 100) : 100
-                return (
-                  <div className="funnel-row" key={s.id}>
-                    <span className="stage">{s.name}</span>
-                    <span className="amount">{fmt(s.total)}</span>
-                    <div className="bar-wrap"><div className="bar" style={{ width: `${pct}%` }}><span>{s.count}</span></div></div>
-                    <span className="rate">{convRate}%</span>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Deal Health Distribution + Velocity side by side */}
+            {/* 2-Column Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <div className="card">
-                <div className="card-header"><h3>Deal Health Distribution</h3></div>
-                {[
-                  { label: 'Healthy (70–100)', count: activeDeals.filter(d => d.health >= 70).length, color: '#16a34a' },
-                  { label: 'At Risk (40–69)', count: activeDeals.filter(d => d.health >= 40 && d.health < 70).length, color: '#d97706' },
-                  { label: 'Critical (0–39)', count: activeDeals.filter(d => d.health < 40).length, color: '#dc2626' },
-                ].map(h => (
-                  <div key={h.label} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: h.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, flex: 1 }}>{h.label}</span>
-                    <span style={{ fontWeight: 700, fontSize: 14 }}>{h.count}</span>
-                    <div style={{ width: 100, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${activeDeals.length > 0 ? (h.count / activeDeals.length) * 100 : 0}%`, background: h.color, borderRadius: 3 }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="card">
-                <div className="card-header"><h3>Stage Velocity (Avg Days)</h3></div>
-                {stageData.map(s => {
-                  const avg = s.deals.length > 0 ? Math.round(s.deals.reduce((sum, d) => sum + d.daysInStage, 0) / s.deals.length) : 0
-                  const overdue = avg > s.expectedDays
-                  return (
-                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                      <span style={{ fontSize: 13, width: 100 }}>{s.name}</span>
-                      <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${Math.min((avg / 20) * 100, 100)}%`, background: overdue ? '#dc2626' : '#6366f1', borderRadius: 3 }} />
+              {/* LEFT COLUMN: Funnel + Deal Health */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div className="card">
+                  <div className="card-header"><h3>Pipeline Funnel</h3></div>
+                  {stageData.map((s, i) => {
+                    const maxVal = Math.max(...stageData.map(x => x.total), 1)
+                    const pct = (s.total / maxVal) * 100
+                    const convRate = i > 0 && stageData[i-1].count > 0 ? Math.round((s.count / stageData[i-1].count) * 100) : 100
+                    return (
+                      <div className="funnel-row" key={s.id}>
+                        <span className="stage">{s.name}</span>
+                        <span className="amount">{fmt(s.total)}</span>
+                        <div className="bar-wrap"><div className="bar" style={{ width: `${pct}%` }}><span>{s.count}</span></div></div>
+                        <span className="rate">{convRate}%</span>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: overdue ? '#dc2626' : '#1e293b', width: 50, textAlign: 'right' }}>{avg}d / {s.expectedDays}d</span>
+                    )
+                  })}
+                </div>
+
+                <div className="card">
+                  <div className="card-header"><h3>Deal Health Distribution</h3></div>
+                  {[
+                    { label: 'Healthy (70–100)', count: activeDeals.filter(d => d.health >= 70).length, color: '#16a34a' },
+                    { label: 'At Risk (40–69)', count: activeDeals.filter(d => d.health >= 40 && d.health < 70).length, color: '#d97706' },
+                    { label: 'Critical (0–39)', count: activeDeals.filter(d => d.health < 40).length, color: '#dc2626' },
+                  ].map(h => (
+                    <div key={h.label} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: h.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, flex: 1 }}>{h.label}</span>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>{h.count}</span>
+                      <div style={{ width: 100, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${activeDeals.length > 0 ? (h.count / activeDeals.length) * 100 : 0}%`, background: h.color, borderRadius: 3 }} />
+                      </div>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Stage Velocity + At-Risk Deals */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div className="card">
+                  <div className="card-header"><h3>Stage Velocity (Avg Days)</h3></div>
+                  {stageData.map(s => {
+                    const avg = s.deals.length > 0 ? Math.round(s.deals.reduce((sum, d) => sum + d.daysInStage, 0) / s.deals.length) : 0
+                    const overdue = avg > s.expectedDays
+                    return (
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                        <span style={{ fontSize: 13, width: 100 }}>{s.name}</span>
+                        <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${Math.min((avg / 20) * 100, 100)}%`, background: overdue ? '#dc2626' : '#6366f1', borderRadius: 3 }} />
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: overdue ? '#dc2626' : '#1e293b', width: 50, textAlign: 'right' }}>{avg}d / {s.expectedDays}d</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {atRisk > 0 && (
+                  <div className="card" style={{ borderColor: '#fde68a' }}>
+                    <div className="card-header"><h3>Deals Needing Attention</h3><span className="badge badge-red">{atRisk} at risk</span></div>
+                    <table>
+                      <thead><tr><th>Deal</th><th>Value</th><th>Health</th><th>Days</th><th>Next Step</th></tr></thead>
+                      <tbody>
+                        {activeDeals.filter(d => d.health < 50).map(d => (
+                          <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedDeal(d)}>
+                            <td><strong>{d.name}</strong><div style={{ fontSize: 11, color: '#64748b' }}>{d.company}</div></td>
+                            <td style={{ fontWeight: 600 }}>{fmt(d.value)}</td>
+                            <td><span style={{ color: healthColor(d.health), fontWeight: 700 }}>{d.health}</span></td>
+                            <td style={{ color: d.daysInStage > 10 ? '#dc2626' : 'inherit' }}>{d.daysInStage}d</td>
+                            <td style={{ fontSize: 12 }}>{d.nextStep}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* At-risk deals */}
-            {atRisk > 0 && (
-              <div className="card" style={{ borderColor: '#fde68a' }}>
-                <div className="card-header"><h3>Deals Needing Attention</h3><span className="badge badge-red">{atRisk} at risk</span></div>
-                <table>
-                  <thead><tr><th>Deal</th><th>Value</th><th>Stage</th><th>Health</th><th>Days in Stage</th><th>Last Activity</th><th>Next Step</th></tr></thead>
-                  <tbody>
-                    {activeDeals.filter(d => d.health < 50).map(d => (
-                      <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedDeal(d)}>
-                        <td><strong>{d.name}</strong><div style={{ fontSize: 11, color: '#64748b' }}>{d.company}</div></td>
-                        <td style={{ fontWeight: 600 }}>{fmt(d.value)}</td>
-                        <td>{stages.find(s => s.id === d.stage)?.name}</td>
-                        <td><span style={{ color: healthColor(d.health), fontWeight: 700 }}>{d.health}</span></td>
-                        <td style={{ color: d.daysInStage > 10 ? '#dc2626' : 'inherit' }}>{d.daysInStage}d</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{d.lastActivity}</td>
-                        <td style={{ fontSize: 12 }}>{d.nextStep}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </>
         )}
 
@@ -423,6 +474,7 @@ export default function Pipeline() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
