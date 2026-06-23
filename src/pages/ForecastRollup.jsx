@@ -93,7 +93,6 @@ export default function ForecastRollup() {
       </div>
 
       <div style={{ padding: 24 }}>
-      <div style={{ padding: 24 }}>
         {/* Horizontal Funnel — top */}
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
