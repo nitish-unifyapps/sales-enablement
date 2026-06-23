@@ -70,7 +70,7 @@ export default function ForecastRollup() {
 
   const metricCards = [
     { label: 'Closed', value: totalClosed, color: '#16a34a', key: 'Closed' },
-    { label: 'Commit', value: totalCommit, color: '#6366f1', key: 'Commit' },
+    { label: 'Commit', value: totalCommit, color: '#FE7916', key: 'Commit' },
     { label: 'Best Case', value: totalBestCase, color: '#0891b2', key: 'Best Case' },
     { label: 'Pipeline', value: totalPipeline, color: '#64748b', key: 'Pipeline' },
   ]
@@ -113,7 +113,7 @@ export default function ForecastRollup() {
             {[
               { label: 'Pipeline', value: totalPipeline, color: '#94a3b8' },
               { label: 'Best Case', value: totalBestCase, color: '#0891b2' },
-              { label: 'Commit', value: totalCommit, color: '#6366f1' },
+              { label: 'Commit', value: totalCommit, color: '#FE7916' },
               { label: 'Closed Won', value: totalClosed, color: '#16a34a' },
             ].map((item, i, arr) => {
               const maxVal = arr[0].value || 1
@@ -160,7 +160,7 @@ export default function ForecastRollup() {
                       const att = Math.round((r.closed / r.quota) * 100)
                       const gap = r.quota - r.closed - r.commit
                       return (
-                        <tr key={r.id} onClick={() => setDrillRep(drillRep === r.name ? null : r.name)} style={{ cursor: 'pointer', background: drillRep === r.name ? '#eef2ff' : '' }}>
+                        <tr key={r.id} onClick={() => setDrillRep(drillRep === r.name ? null : r.name)} style={{ cursor: 'pointer', background: drillRep === r.name ? '#fff5ed' : '' }}>
                           <td><strong>{r.name}</strong><div style={{ fontSize: 10, color: '#94a3b8' }}>{r.team}</div></td>
                           <td>{fmt(r.quota)}</td>
                           <td style={{ color: '#16a34a', fontWeight: 600 }}>{fmt(r.closed)}</td>
@@ -205,7 +205,7 @@ export default function ForecastRollup() {
                         <td><span className={`badge ${d.category === 'Commit' ? 'badge-purple' : d.category === 'Best Case' ? 'badge-blue' : 'badge-gray'}`}>{d.category}</span></td>
                         <td style={{ fontSize: 12 }}>{d.owner}</td>
                         <td style={{ fontSize: 12 }}>{d.closeDate}</td>
-                        <td style={{ fontSize: 11, color: d.change.includes('+') ? '#16a34a' : d.change.includes('-') || d.change.includes('Pushed') ? '#dc2626' : d.change === 'New' ? '#6366f1' : '#94a3b8', fontWeight: 500 }}>{d.change || '—'}</td>
+                        <td style={{ fontSize: 11, color: d.change.includes('+') ? '#16a34a' : d.change.includes('-') || d.change.includes('Pushed') ? '#dc2626' : d.change === 'New' ? '#FE7916' : '#94a3b8', fontWeight: 500 }}>{d.change || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

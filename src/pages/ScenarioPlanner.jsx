@@ -153,7 +153,7 @@ export default function ScenarioPlanner() {
           <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {chatMessages.map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
               </div>
             ))}
             <div ref={chatEndRef} />
@@ -269,9 +269,9 @@ export default function ScenarioPlanner() {
 
             {isRunning && (
               <div className="card" style={{ textAlign: 'center', padding: '60px 40px' }}>
-                <div style={{ fontSize: 14, color: '#6366f1', fontWeight: 600, marginBottom: 8 }}>Running 10,000 simulations...</div>
+                <div style={{ fontSize: 14, color: '#FE7916', fontWeight: 600, marginBottom: 8 }}>Running 10,000 simulations...</div>
                 <div style={{ width: 200, height: 4, background: '#f1f5f9', borderRadius: 2, margin: '0 auto', overflow: 'hidden' }}>
-                  <div style={{ width: '70%', height: '100%', background: '#6366f1', borderRadius: 2, animation: 'none' }} />
+                  <div style={{ width: '70%', height: '100%', background: '#FE7916', borderRadius: 2, animation: 'none' }} />
                 </div>
                 <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 12 }}>Analyzing historical data, computing win probability distributions, and modeling variance...</p>
               </div>
@@ -288,9 +288,9 @@ export default function ScenarioPlanner() {
                       <div style={{ fontSize: 24, fontWeight: 800, color: '#dc2626' }}>{fmt(activeResult.bear)}</div>
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>75%+ of simulations above this</div>
                     </div>
-                    <div style={{ background: '#eef2ff', borderRadius: 12, padding: 20, textAlign: 'center', border: '2px solid #c7d2fe' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', letterSpacing: 1, marginBottom: 4 }}>MOST LIKELY</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: '#6366f1' }}>{fmt(activeResult.fair)}</div>
+                    <div style={{ background: '#fff5ed', borderRadius: 12, padding: 20, textAlign: 'center', border: '2px solid #ffc89e' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#FE7916', letterSpacing: 1, marginBottom: 4 }}>MOST LIKELY</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: '#FE7916' }}>{fmt(activeResult.fair)}</div>
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Most frequent outcome</div>
                     </div>
                     <div style={{ background: '#f0fdf4', borderRadius: 12, padding: 20, textAlign: 'center' }}>
@@ -308,8 +308,8 @@ export default function ScenarioPlanner() {
                       <span>{fmt(activeResult.bull)}</span>
                     </div>
                     <div style={{ position: 'relative', height: 28, background: '#f1f5f9', borderRadius: 6 }}>
-                      <div style={{ position: 'absolute', left: `${Math.max(0, (activeResult.bear / quota) * 70)}%`, width: `${Math.min(100, ((activeResult.bull - activeResult.bear) / quota) * 70)}%`, top: 4, bottom: 4, background: 'linear-gradient(90deg, #fecaca, #c7d2fe, #bbf7d0)', borderRadius: 4, opacity: 0.7 }} />
-                      <div style={{ position: 'absolute', left: `${(activeResult.fair / quota) * 70}%`, top: 0, bottom: 0, width: 3, background: '#6366f1', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', left: `${Math.max(0, (activeResult.bear / quota) * 70)}%`, width: `${Math.min(100, ((activeResult.bull - activeResult.bear) / quota) * 70)}%`, top: 4, bottom: 4, background: 'linear-gradient(90deg, #fecaca, #ffc89e, #bbf7d0)', borderRadius: 4, opacity: 0.7 }} />
+                      <div style={{ position: 'absolute', left: `${(activeResult.fair / quota) * 70}%`, top: 0, bottom: 0, width: 3, background: '#FE7916', borderRadius: 2 }} />
                       <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 2, background: '#1e293b' }} />
                     </div>
                     <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: activeResult.fair >= quota ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
@@ -328,7 +328,7 @@ export default function ScenarioPlanner() {
                       <tr><td style={{ color: '#64748b' }}>+ Net New Pipeline (weighted at 12%)</td><td style={{ fontWeight: 700, textAlign: 'right', color: '#16a34a' }}>+{fmt(activeResult.netNewWeighted)}</td></tr>
                       <tr><td style={{ color: '#64748b' }}>− Slippage ({active.slippage}% of deals push out)</td><td style={{ fontWeight: 700, textAlign: 'right', color: '#dc2626' }}>−{fmt(Math.round(activeResult.weightedPipeline * active.slippage / 100))}</td></tr>
                       <tr><td style={{ color: '#64748b' }}>× Team Ramp Factor ({active.rampFactor}%)</td><td style={{ fontWeight: 700, textAlign: 'right' }}>{fmt(activeResult.afterRamp)}</td></tr>
-                      <tr style={{ borderTop: '2px solid #e5e7eb' }}><td style={{ fontWeight: 700 }}>Fair Value (Most Likely Outcome)</td><td style={{ fontWeight: 800, textAlign: 'right', fontSize: 16, color: '#6366f1' }}>{fmt(activeResult.fair)}</td></tr>
+                      <tr style={{ borderTop: '2px solid #e5e7eb' }}><td style={{ fontWeight: 700 }}>Fair Value (Most Likely Outcome)</td><td style={{ fontWeight: 800, textAlign: 'right', fontSize: 16, color: '#FE7916' }}>{fmt(activeResult.fair)}</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -345,7 +345,7 @@ export default function ScenarioPlanner() {
                         <span style={{ width: 70, fontSize: 11, color: '#64748b' }}>{fmt(s.pipeline)}</span>
                         <span style={{ width: 40, fontSize: 11, color: '#64748b' }}>×{s.winRate}%</span>
                         <div style={{ flex: 1, height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: '#6366f1', borderRadius: 4 }} />
+                          <div style={{ height: '100%', width: `${pct}%`, background: '#FE7916', borderRadius: 4 }} />
                         </div>
                         <span style={{ width: 70, fontSize: 12, fontWeight: 700, textAlign: 'right' }}>{fmt(Math.round(contribution))}</span>
                       </div>
@@ -361,10 +361,10 @@ export default function ScenarioPlanner() {
                       <thead><tr><th>Scenario</th><th>Bear</th><th>Most Likely</th><th>Bull</th><th>Slippage</th><th>vs Quota</th></tr></thead>
                       <tbody>
                         {results.map((r, i) => (
-                          <tr key={r.id} style={r.id === active.id ? { background: '#eef2ff' } : {}}>
+                          <tr key={r.id} style={r.id === active.id ? { background: '#fff5ed' } : {}}>
                             <td><strong>{r.name}</strong></td>
                             <td style={{ color: '#dc2626' }}>{fmt(r.bear)}</td>
-                            <td style={{ color: '#6366f1', fontWeight: 700 }}>{fmt(r.fair)}</td>
+                            <td style={{ color: '#FE7916', fontWeight: 700 }}>{fmt(r.fair)}</td>
                             <td style={{ color: '#16a34a' }}>{fmt(r.bull)}</td>
                             <td>{r.inputs.slippage}%</td>
                             <td style={{ color: r.fair >= quota ? '#16a34a' : '#dc2626', fontWeight: 600 }}>

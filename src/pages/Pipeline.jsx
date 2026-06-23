@@ -122,12 +122,12 @@ export default function Pipeline() {
                 </div>
               )}
               {copilotMessages.map((m, i) => (
-                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, background: m.role === 'user' ? '#6366f1' : '#fff', color: m.role === 'user' ? '#fff' : '#1e293b', alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', border: m.role === 'ai' ? '1px solid #e2e8f0' : 'none' }}>{m.text}</div>
+                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, background: m.role === 'user' ? '#FE7916' : '#fff', color: m.role === 'user' ? '#fff' : '#1e293b', alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', border: m.role === 'ai' ? '1px solid #e2e8f0' : 'none' }}>{m.text}</div>
               ))}
             </div>
             <div style={{ padding: 12, borderTop: '1px solid #e2e8f0', display: 'flex', gap: 6 }}>
               <input value={copilotInput} onChange={e => setCopilotInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendCopilot()} placeholder="Ask about pipeline..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }} />
-              <button onClick={() => sendCopilot()} style={{ padding: '8px 12px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, cursor: 'pointer' }}>Send</button>
+              <button onClick={() => sendCopilot()} style={{ padding: '8px 12px', background: '#FE7916', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, cursor: 'pointer' }}>Send</button>
             </div>
           </>
         )}
@@ -232,7 +232,7 @@ export default function Pipeline() {
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                         <span style={{ fontSize: 13, width: 100 }}>{s.name}</span>
                         <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${Math.min((avg / 20) * 100, 100)}%`, background: overdue ? '#dc2626' : '#6366f1', borderRadius: 3 }} />
+                          <div style={{ height: '100%', width: `${Math.min((avg / 20) * 100, 100)}%`, background: overdue ? '#dc2626' : '#FE7916', borderRadius: 3 }} />
                         </div>
                         <span style={{ fontSize: 12, fontWeight: 600, color: overdue ? '#dc2626' : '#1e293b', width: 50, textAlign: 'right' }}>{avg}d / {s.expectedDays}d</span>
                       </div>
@@ -266,8 +266,8 @@ export default function Pipeline() {
             <div className="card">
               <div className="card-header"><h3>Activity → Revenue Funnel</h3></div>
               {[
-                { stage: 'Calls Made', count: 842, color: '#6366f1' },
-                { stage: 'Conversations', count: 234, color: '#818cf8' },
+                { stage: 'Calls Made', count: 842, color: '#FE7916' },
+                { stage: 'Conversations', count: 234, color: '#ff944d' },
                 { stage: 'Meetings Set', count: 68, color: '#0891b2' },
                 { stage: 'Pipeline Created', count: 42, color: '#d97706' },
                 { stage: 'Closed Won', count: 10, color: '#16a34a' },

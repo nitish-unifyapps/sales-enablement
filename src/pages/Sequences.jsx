@@ -181,11 +181,11 @@ export default function Sequences() {
     const isSelected = selectedStep?.id === node.id
 
     const nodeBox = (
-      <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ padding: isTrigger ? '10px 20px' : '12px 16px', background: isTrigger ? '#16a34a' : isSelected ? '#eef2ff' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: isTrigger ? 24 : isCondition ? 12 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: 140, textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.12)' : '0 1px 4px rgba(0,0,0,.04)' }}>
-        {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#6366f1' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>{st.label}</div>}
+      <div onClick={() => !isTrigger && setSelectedStep(node)} style={{ padding: isTrigger ? '10px 20px' : '12px 16px', background: isTrigger ? '#16a34a' : isSelected ? '#fff5ed' : '#fff', color: isTrigger ? '#fff' : '#1e293b', border: isTrigger ? 'none' : `2px solid ${isSelected ? '#FE7916' : '#e5e7eb'}`, borderRadius: isTrigger ? 24 : isCondition ? 12 : 10, cursor: isTrigger ? 'default' : 'pointer', minWidth: 140, textAlign: 'center', boxShadow: isSelected ? '0 4px 12px rgba(99,102,241,.12)' : '0 1px 4px rgba(0,0,0,.04)' }}>
+        {!isTrigger && <div style={{ fontSize: 9, color: isSelected ? '#FE7916' : '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>{st.label}</div>}
         <div style={{ fontSize: 12, fontWeight: 600 }}>{node.title}</div>
         {node.desc && !isTrigger && !isCondition && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{node.desc.substring(0, 40)}</div>}
-        {node.day > 0 && !isTrigger && <div style={{ fontSize: 9, color: '#6366f1', marginTop: 4 }}>Day {node.day}</div>}
+        {node.day > 0 && !isTrigger && <div style={{ fontSize: 9, color: '#FE7916', marginTop: 4 }}>Day {node.day}</div>}
       </div>
     )
 
@@ -296,7 +296,7 @@ export default function Sequences() {
             <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {chatMessages.map((m, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                  <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
                 </div>
               ))}
               <div ref={chatEndRef} />
@@ -345,12 +345,12 @@ export default function Sequences() {
                         const stepIdx = cardSteps.indexOf(step)
                         const isSelected = selectedStep?.id === step.id
                         return (
-                          <div key={step.id} onClick={() => setSelectedStep(step)} style={{ background: isSelected ? '#eef2ff' : '#fff', border: `1px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 10, padding: 0, marginBottom: 10, cursor: 'pointer', overflow: 'hidden', transition: 'all .12s' }}>
+                          <div key={step.id} onClick={() => setSelectedStep(step)} style={{ background: isSelected ? '#fff5ed' : '#fff', border: `1px solid ${isSelected ? '#FE7916' : '#e5e7eb'}`, borderRadius: 10, padding: 0, marginBottom: 10, cursor: 'pointer', overflow: 'hidden', transition: 'all .12s' }}>
                             {/* Conditions bar at top */}
                             {step.conditions.length > 0 && (
                               <div style={{ padding: '6px 14px', background: '#f8f9fb', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                 {step.conditions.map(c => (
-                                  <span key={c.id} style={{ fontSize: 10, padding: '2px 8px', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, color: '#6366f1', fontWeight: 500 }}>
+                                  <span key={c.id} style={{ fontSize: 10, padding: '2px 8px', background: '#fff5ed', border: '1px solid #ffc89e', borderRadius: 12, color: '#FE7916', fontWeight: 500 }}>
                                     {c.from}: {c.condition}
                                   </span>
                                 ))}
@@ -453,7 +453,7 @@ export default function Sequences() {
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>Conditions</div>
                     <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 8 }}>Execute this step only when:</div>
                     {(selectedStep.conditions || []).map((c, ci) => (
-                      <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, padding: '5px 8px', background: '#eef2ff', borderRadius: 6, fontSize: 11 }}>
+                      <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, padding: '5px 8px', background: '#fff5ed', borderRadius: 6, fontSize: 11 }}>
                         <span style={{ flex: 1 }}><strong>{c.from}</strong> → {c.condition}</span>
                         <button onClick={() => { const u = { ...selectedStep, conditions: selectedStep.conditions.filter((_, i) => i !== ci) }; setSelectedStep(u); setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)) }} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 11 }}>×</button>
                       </div>

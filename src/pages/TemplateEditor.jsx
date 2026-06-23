@@ -137,7 +137,7 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {chatMessages.map((m, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+              <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
             </div>
           ))}
           <div ref={chatEndRef} />
@@ -230,9 +230,9 @@ export default function TemplateEditor({ template, onSave, onCancel }) {
             {expandedCat === cat.id && (
               <div style={{ padding: '4px 0' }}>
                 {cat.vars.map(v => (
-                  <div key={v.key} onClick={() => insertVariable(v.key)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', cursor: 'pointer', borderRadius: 4, fontSize: 12, transition: 'background .1s' }} onMouseOver={e => e.currentTarget.style.background = '#eef2ff'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                  <div key={v.key} onClick={() => insertVariable(v.key)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', cursor: 'pointer', borderRadius: 4, fontSize: 12, transition: 'background .1s' }} onMouseOver={e => e.currentTarget.style.background = '#fff5ed'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                     <span>{v.label}</span>
-                    <code style={{ fontSize: 10, color: '#6366f1', background: '#f1f5f9', padding: '2px 6px', borderRadius: 3 }}>{`{{${v.key}}}`}</code>
+                    <code style={{ fontSize: 10, color: '#FE7916', background: '#f1f5f9', padding: '2px 6px', borderRadius: 3 }}>{`{{${v.key}}}`}</code>
                   </div>
                 ))}
               </div>

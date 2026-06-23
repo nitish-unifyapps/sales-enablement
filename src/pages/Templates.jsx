@@ -86,7 +86,7 @@ export default function Templates() {
         <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {chatMessages.map((m, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#6366f1' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+              <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
             </div>
           ))}
           <div ref={chatEndRef} />
