@@ -88,54 +88,46 @@ export default function ForecastRollup() {
       </div>
 
       <div style={{ padding: 24 }}>
-        {/* Line Chart Header — Quota vs Achieved */}
+        {/* Stage-based Chart — Quota vs Actual per stage */}
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Forecast Progress — Q3 2026</span>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>Forecast by Stage</span>
             <div style={{ display: 'flex', gap: 14, fontSize: 10, color: '#7B9CAF' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#FE7916', borderRadius: 2 }} /> Achieved</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#7B9CAF', borderRadius: 2 }} /> Quota (linear)</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#16a34a', borderRadius: 2, opacity: 0.5 }} /> Commit</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: '#FE7916', borderRadius: 2, opacity: 0.7 }} /> Actual</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: '#7B9CAF', borderRadius: 2, opacity: 0.3 }} /> Target</span>
             </div>
           </div>
           {(() => {
-            const weeks = ['Jul 1', 'Jul 8', 'Jul 15', 'Jul 22', 'Jul 29', 'Aug 5', 'Aug 12', 'Aug 19', 'Aug 26', 'Sep 2', 'Sep 9', 'Sep 16']
-            const achieved = [120, 280, 410, 520, 650, 740, 850, 920, 980, 1050, 1100, 1140]
-            const commit = [400, 520, 680, 780, 880, 1020, 1150, 1280, 1380, 1450, 1520, 1570]
-            const quota = weeks.map((_, i) => Math.round((totalQuota / 1000) * ((i + 1) / weeks.length)))
-            const maxVal = Math.max(...commit, ...quota)
-            const W = 700, H = 120, padL = 40, padR = 10, padT = 10, padB = 24
-            const chartW = W - padL - padR, chartH = H - padT - padB
-            const x = (i) => padL + (i / (weeks.length - 1)) * chartW
-            const y = (v) => padT + chartH - (v / maxVal) * chartH
-            const line = (data) => data.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`).join(' ')
-            const area = (data) => line(data) + ` L${x(data.length-1)},${H - padB} L${x(0)},${H - padB} Z`
+            const stages = [
+              { name: 'Pipeline', actual: totalPipeline, target: 2200000 },
+              { name: 'Best Case', actual: totalBestCase, target: 600000 },
+              { name: 'Commit', actual: totalCommit, target: 700000 },
+              { name: 'Closed Won', actual: totalClosed, target: totalQuota },
+            ]
+            const maxVal = Math.max(...stages.map(s => Math.max(s.actual, s.target)))
             return (
-              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
-                {/* Grid lines */}
-                {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-                  <g key={i}>
-                    <line x1={padL} y1={padT + chartH * (1 - pct)} x2={W - padR} y2={padT + chartH * (1 - pct)} stroke="#f1f5f9" strokeWidth="1" />
-                    <text x={padL - 4} y={padT + chartH * (1 - pct) + 3} fontSize="8" fill="#7B9CAF" textAnchor="end">{Math.round(maxVal * pct)}K</text>
-                  </g>
-                ))}
-                {/* X axis labels */}
-                {weeks.map((w, i) => (
-                  <text key={i} x={x(i)} y={H - 4} fontSize="7" fill="#7B9CAF" textAnchor="middle">{w.split(' ')[1]}</text>
-                ))}
-                {/* Quota line */}
-                <polyline points={quota.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#7B9CAF" strokeWidth="1.5" strokeDasharray="4" opacity="0.6" />
-                {/* Commit area */}
-                <path d={area(commit)} fill="#16a34a" opacity="0.06" />
-                <polyline points={commit.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#16a34a" strokeWidth="1.5" opacity="0.5" />
-                {/* Achieved area */}
-                <path d={area(achieved)} fill="#FE7916" opacity="0.1" />
-                <polyline points={achieved.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#FE7916" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Data points on achieved */}
-                {achieved.map((v, i) => (
-                  <circle key={i} cx={x(i)} cy={y(v)} r="3" fill="#fff" stroke="#FE7916" strokeWidth="2" />
-                ))}
-              </svg>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24, height: 120, paddingTop: 10 }}>
+                {stages.map((s, i) => {
+                  const actualH = (s.actual / maxVal) * 100
+                  const targetH = (s.target / maxVal) * 100
+                  const pct = Math.round((s.actual / s.target) * 100)
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: pct >= 100 ? '#16a34a' : pct >= 70 ? '#FE7916' : '#dc2626' }}>{pct}%</div>
+                      <div style={{ width: '100%', height: 90, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 4, position: 'relative' }}>
+                        {/* Target bar */}
+                        <div style={{ width: '35%', height: `${targetH}%`, background: '#7B9CAF', opacity: 0.15, borderRadius: '4px 4px 0 0' }} />
+                        {/* Actual bar */}
+                        <div style={{ width: '35%', height: `${actualH}%`, background: '#FE7916', opacity: 0.8, borderRadius: '4px 4px 0 0' }} />
+                        {/* Target line marker */}
+                        <div style={{ position: 'absolute', bottom: `${targetH}%`, left: '10%', right: '10%', height: 2, background: '#7B9CAF', borderRadius: 1 }} />
+                      </div>
+                      <div style={{ fontSize: 9, color: '#7B9CAF', textAlign: 'center' }}>{s.name}</div>
+                      <div style={{ fontSize: 9, fontWeight: 600, color: '#475569' }}>{fmt(s.actual)}</div>
+                    </div>
+                  )
+                })}
+              </div>
             )
           })()}
         </div>
