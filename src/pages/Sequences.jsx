@@ -137,7 +137,7 @@ export default function Sequences() {
     setPendingStep(null)
   }, [builderTab])
 
-  const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('steps') }
+  const openSequence = (seq) => { setSelectedSeq(seq); setView('builder'); setBuilderTab('cards') }
   const openCreate = () => { setView('builder'); setSelectedSeq(null); setSteps([]); setChatMessages([{ role: 'ai', text: copilotContexts.create.greeting }]) }
   const backToList = () => { setSelectedSeq(null); setView('list'); setSelectedStep(null) }
 
