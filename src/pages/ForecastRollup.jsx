@@ -192,10 +192,9 @@ export default function ForecastRollup() {
           {/* RIGHT: Circular charts + Insights + Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Circular Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[
                 { label: 'Attainment', value: attainment, color: '#FE7916' },
-                { label: 'AI Confidence', value: 74, color: '#16a34a' },
                 { label: 'Coverage', value: Math.min(100, Math.round((totalPipeline / totalQuota) * 100)), color: '#7B9CAF' },
               ].map((m, i) => (
                 <div key={i} className="card" style={{ padding: 12, textAlign: 'center' }}>
