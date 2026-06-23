@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import Copilot from './Copilot'
 
 const stepTypes = [
   { type: 'auto_email', label: 'Email', cat: 'auto' },
@@ -129,9 +130,7 @@ export default function Sequences() {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pendingStep, setPendingStep] = useState(null)
-  const chatEndRef = useRef(null)
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
   useEffect(() => {
     const ctx = copilotContexts[builderTab] || copilotContexts.steps
     setChatMessages([{ role: 'ai', text: ctx.greeting }])
@@ -288,30 +287,8 @@ export default function Sequences() {
       {view === 'builder' && (
         <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
           {/* LEFT: Collapsible Copilot */}
-          <div style={{ width: copilotOpen ? 300 : 0, overflow: 'hidden', transition: 'width .2s', borderRight: copilotOpen ? '1px solid #e5e7eb' : 'none', display: 'flex', flexDirection: 'column', background: '#fff', flexShrink: 0 }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div><div style={{ fontSize: 13, fontWeight: 700 }}>Copilot</div><div style={{ fontSize: 10, color: '#64748b' }}>{builderTab}</div></div>
-              <button onClick={() => setCopilotOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>×</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {chatMessages.map((m, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-            {chatMessages.length <= 1 && (
-              <div style={{ padding: '0 12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {currentCtx.starters.map((s, i) => (
-                  <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '6px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', cursor: 'pointer' }}>{s}</button>
-                ))}
-              </div>
-            )}
-            <div style={{ padding: '8px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
-              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
-              <button className="btn btn-primary" onClick={handleChat} style={{ padding: '8px 10px', fontSize: 11 }}>→</button>
-            </div>
+          <div style={{ width: copilotOpen ? 300 : 0, overflow: 'hidden', transition: 'width .2s', flexShrink: 0 }}>
+            <Copilot title="Copilot" subtitle={builderTab === 'cards' ? 'Steps Builder' : builderTab} messages={chatMessages} starters={currentCtx.starters} input={chatInput} setInput={setChatInput} onSend={handleChat} onClose={() => setCopilotOpen(false)} />
           </div>
 
           {/* CENTER: Canvas */}

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import Copilot from './Copilot'
 
 const initialMetricRules = [
   { id: 1, name: 'Reply Rate', source: 'sequence', metric: 'reply_rate', operator: '>=', threshold: 40, unit: '%', current: 34, status: 'below', period: 'weekly' },

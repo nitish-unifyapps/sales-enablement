@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import Copilot from './Copilot'
 
 const stageDefaults = [
   { id: 'discovery', name: 'Discovery', winRate: 15, pipeline: 320000, velocity: 14 },

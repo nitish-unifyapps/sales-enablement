@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import Copilot from './Copilot'
 import TemplateEditor from './TemplateEditor'
 
 const initialTemplates = [
@@ -78,31 +79,8 @@ export default function Templates() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100vh' }}>
       {/* LEFT: Copilot */}
-      <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>Template Copilot</div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Generate and refine templates with AI</div>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {chatMessages.map((m, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth: '88%', padding: '9px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-        {chatMessages.length <= 1 && (
-          <div style={{ padding: '0 14px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Suggestions</div>
-            {templateStarters.slice(0, 4).map((s, i) => (
-              <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '7px 11px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 11, color: '#475569', cursor: 'pointer' }}>{s}</button>
-            ))}
-          </div>
-        )}
-        <div style={{ padding: '10px 14px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
-          <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
-          <button className="btn btn-primary" onClick={handleChat} style={{ padding: '9px 12px', fontSize: 12 }}>Send</button>
-        </div>
+      <div style={{ width: 320 }}>
+        <Copilot title="Template Copilot" subtitle="Generate & refine with AI" messages={chatMessages} starters={templateStarters.slice(0, 4)} input={chatInput} setInput={setChatInput} onSend={handleChat} />
       </div>
 
       {/* RIGHT: Template List */}
