@@ -149,7 +149,6 @@ export default function ScenarioPlanner() {
     { name: 'Conservative', bear: 310000, fair: 440000, bull: 560000, winRate: '-10%', slippage: 25, recommended: false },
     { name: 'High Slippage', bear: 280000, fair: 390000, bull: 510000, winRate: 'Current', slippage: 30, recommended: false },
   ]
-  const quota = 1850000
   const [showManualModal, setShowManualModal] = useState(false)
 
   return (
