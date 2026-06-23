@@ -88,29 +88,56 @@ export default function ForecastRollup() {
       </div>
 
       <div style={{ padding: 24 }}>
-        {/* Area Chart Header — Quota vs Achieved over weeks */}
+        {/* Line Chart Header — Quota vs Achieved */}
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <span style={{ fontSize: 12, fontWeight: 700 }}>Forecast Progress — Q3 2026</span>
             <div style={{ display: 'flex', gap: 14, fontSize: 10, color: '#7B9CAF' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#FE7916', borderRadius: 2 }} /> Achieved</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#7B9CAF', borderRadius: 2, opacity: 0.4 }} /> Quota Target</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#7B9CAF', borderRadius: 2 }} /> Quota (linear)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#16a34a', borderRadius: 2, opacity: 0.5 }} /> Commit</span>
             </div>
           </div>
-          <svg width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="none" style={{ display: 'block' }}>
-            {/* Quota line (target) */}
-            <line x1="0" y1="20" x2="600" y2="20" stroke="#7B9CAF" strokeWidth="1.5" strokeDasharray="4" opacity="0.4" />
-            {/* Achievement area */}
-            <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FE7916" stopOpacity="0.15"/><stop offset="100%" stopColor="#FE7916" stopOpacity="0"/></linearGradient></defs>
-            <polygon points="0,95 60,88 120,80 180,72 240,60 300,50 360,42 420,38 480,34 540,30 600,28 600,100 0,100" fill="url(#areaGrad)" />
-            <polyline points="0,95 60,88 120,80 180,72 240,60 300,50 360,42 420,38 480,34 540,30 600,28" fill="none" stroke="#FE7916" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Week labels */}
-            {['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','Now'].map((w, i) => (
-              <text key={i} x={i * 60} y="98" fontSize="8" fill="#7B9CAF">{w}</text>
-            ))}
-            {/* Quota label */}
-            <text x="560" y="16" fontSize="8" fill="#7B9CAF">Quota</text>
-          </svg>
+          {(() => {
+            const weeks = ['Jul 1', 'Jul 8', 'Jul 15', 'Jul 22', 'Jul 29', 'Aug 5', 'Aug 12', 'Aug 19', 'Aug 26', 'Sep 2', 'Sep 9', 'Sep 16']
+            const achieved = [120, 280, 410, 520, 650, 740, 850, 920, 980, 1050, 1100, 1140]
+            const commit = [400, 520, 680, 780, 880, 1020, 1150, 1280, 1380, 1450, 1520, 1570]
+            const quota = weeks.map((_, i) => Math.round((totalQuota / 1000) * ((i + 1) / weeks.length)))
+            const maxVal = Math.max(...commit, ...quota)
+            const W = 700, H = 120, padL = 40, padR = 10, padT = 10, padB = 24
+            const chartW = W - padL - padR, chartH = H - padT - padB
+            const x = (i) => padL + (i / (weeks.length - 1)) * chartW
+            const y = (v) => padT + chartH - (v / maxVal) * chartH
+            const line = (data) => data.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`).join(' ')
+            const area = (data) => line(data) + ` L${x(data.length-1)},${H - padB} L${x(0)},${H - padB} Z`
+            return (
+              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+                {/* Grid lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
+                  <g key={i}>
+                    <line x1={padL} y1={padT + chartH * (1 - pct)} x2={W - padR} y2={padT + chartH * (1 - pct)} stroke="#f1f5f9" strokeWidth="1" />
+                    <text x={padL - 4} y={padT + chartH * (1 - pct) + 3} fontSize="8" fill="#7B9CAF" textAnchor="end">{Math.round(maxVal * pct)}K</text>
+                  </g>
+                ))}
+                {/* X axis labels */}
+                {weeks.map((w, i) => (
+                  <text key={i} x={x(i)} y={H - 4} fontSize="7" fill="#7B9CAF" textAnchor="middle">{w.split(' ')[1]}</text>
+                ))}
+                {/* Quota line */}
+                <polyline points={quota.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#7B9CAF" strokeWidth="1.5" strokeDasharray="4" opacity="0.6" />
+                {/* Commit area */}
+                <path d={area(commit)} fill="#16a34a" opacity="0.06" />
+                <polyline points={commit.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#16a34a" strokeWidth="1.5" opacity="0.5" />
+                {/* Achieved area */}
+                <path d={area(achieved)} fill="#FE7916" opacity="0.1" />
+                <polyline points={achieved.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" stroke="#FE7916" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                {/* Data points on achieved */}
+                {achieved.map((v, i) => (
+                  <circle key={i} cx={x(i)} cy={y(v)} r="3" fill="#fff" stroke="#FE7916" strokeWidth="2" />
+                ))}
+              </svg>
+            )
+          })()}
         </div>
 
         {/* Two Column Layout — 70% left, 30% right */}
