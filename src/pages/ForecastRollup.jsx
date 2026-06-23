@@ -82,50 +82,40 @@ export default function ForecastRollup() {
       <div className="topbar">
         <h2>Forecast Rollup</h2>
         <div className="actions">
-          <select value={config} onChange={e => setConfig(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
-            <option>New ARR</option><option>Expansion</option><option>Renewal</option>
-          </select>
-          <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
-            <option>Q3 2026</option><option>Q4 2026</option><option>Q1 2027</option>
-          </select>
-          <button className="btn btn-primary" onClick={handleSubmit}>Submit Forecast</button>
+          <select value={config} onChange={e => setConfig(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}><option>New ARR</option><option>Expansion</option><option>Renewal</option></select>
+          <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}><option>Q3 2026</option><option>Q4 2026</option><option>Q1 2027</option></select>
         </div>
       </div>
 
       <div style={{ padding: 24 }}>
-        {/* Horizontal Funnel — top */}
+        {/* Area Chart Header — Quota vs Achieved over weeks */}
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {[
-              { label: 'Pipeline', value: totalPipeline, color: '#94a3b8' },
-              { label: 'Best Case', value: totalBestCase, color: '#0891b2' },
-              { label: 'Commit', value: totalCommit, color: '#FE7916' },
-              { label: 'Closed Won', value: totalClosed, color: '#16a34a' },
-            ].map((item, i, arr) => (
-              <div key={i} style={{ flex: 1, cursor: 'pointer' }} onClick={() => setSelectedMetric(selectedMetric === item.label ? null : item.label === 'Closed Won' ? 'Closed' : item.label)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#7B9CAF' }}>{item.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: item.color }}>{fmt(item.value)}</span>
-                </div>
-                <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(item.value / (arr[0].value || 1)) * 100}%`, background: item.color, borderRadius: 4 }} />
-                </div>
-              </div>
-            ))}
-            <div style={{ borderLeft: '1px solid #e5e7eb', paddingLeft: 16, textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>{attainment}%</div>
-              <div style={{ fontSize: 9, color: '#7B9CAF' }}>Attainment</div>
-            </div>
-            <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: gapToQuota > 0 ? '#dc2626' : '#16a34a' }}>{gapToQuota > 0 ? `-${fmt(gapToQuota)}` : `+${fmt(Math.abs(gapToQuota))}`}</div>
-              <div style={{ fontSize: 9, color: '#7B9CAF' }}>Gap to Quota</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>Forecast Progress — Q3 2026</span>
+            <div style={{ display: 'flex', gap: 14, fontSize: 10, color: '#7B9CAF' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#FE7916', borderRadius: 2 }} /> Achieved</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 3, background: '#7B9CAF', borderRadius: 2, opacity: 0.4 }} /> Quota Target</span>
             </div>
           </div>
+          <svg width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="none" style={{ display: 'block' }}>
+            {/* Quota line (target) */}
+            <line x1="0" y1="20" x2="600" y2="20" stroke="#7B9CAF" strokeWidth="1.5" strokeDasharray="4" opacity="0.4" />
+            {/* Achievement area */}
+            <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FE7916" stopOpacity="0.15"/><stop offset="100%" stopColor="#FE7916" stopOpacity="0"/></linearGradient></defs>
+            <polygon points="0,95 60,88 120,80 180,72 240,60 300,50 360,42 420,38 480,34 540,30 600,28 600,100 0,100" fill="url(#areaGrad)" />
+            <polyline points="0,95 60,88 120,80 180,72 240,60 300,50 360,42 420,38 480,34 540,30 600,28" fill="none" stroke="#FE7916" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Week labels */}
+            {['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','Now'].map((w, i) => (
+              <text key={i} x={i * 60} y="98" fontSize="8" fill="#7B9CAF">{w}</text>
+            ))}
+            {/* Quota label */}
+            <text x="560" y="16" fontSize="8" fill="#7B9CAF">Quota</text>
+          </svg>
         </div>
 
-        {/* Two columns: Tables (left) + AI Insights (right) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20 }}>
-          {/* LEFT: Tabbed Tables */}
+        {/* Two Column Layout — 70% left, 30% right */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
+          {/* LEFT: Tables */}
           <div>
             <div className="tabs" style={{ marginBottom: 12 }}>
               <button className={tableTab === 'rollup' ? 'active' : ''} onClick={() => setTableTab('rollup')}>Team Rollup</button>
@@ -135,7 +125,7 @@ export default function ForecastRollup() {
             {tableTab === 'rollup' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <table>
-                  <thead><tr><th>Rep</th><th>Quota</th><th>Closed</th><th>Commit</th><th>Best Case</th><th>Attainment</th><th>Gap</th></tr></thead>
+                  <thead><tr><th>Rep</th><th>Quota</th><th>Closed</th><th>Commit</th><th>Best Case</th><th>Pipeline</th><th>Attainment</th><th>Gap</th></tr></thead>
                   <tbody>
                     {team.map(r => {
                       const att = Math.round((r.closed / r.quota) * 100)
@@ -147,11 +137,15 @@ export default function ForecastRollup() {
                           <td style={{ color: '#16a34a', fontWeight: 600 }}>{fmt(r.closed)}</td>
                           <td style={{ fontWeight: 600 }}>{fmt(r.commit)}</td>
                           <td>{fmt(r.bestCase)}</td>
+                          <td>{fmt(r.pipeline)}</td>
                           <td><div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 36, height: 5, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}><div style={{ height: '100%', width: `${att}%`, background: att >= 50 ? '#16a34a' : '#d97706', borderRadius: 3 }} /></div><span style={{ fontSize: 10, fontWeight: 600 }}>{att}%</span></div></td>
                           <td style={{ color: gap > 0 ? '#dc2626' : '#16a34a', fontSize: 11, fontWeight: 600 }}>{gap > 0 ? `-${fmt(gap)}` : `+${fmt(Math.abs(gap))}`}</td>
                         </tr>
                       )
                     })}
+                    <tr style={{ background: '#f8f9fb', fontWeight: 700, fontSize: 12 }}>
+                      <td>Total</td><td>{fmt(totalQuota)}</td><td style={{ color: '#16a34a' }}>{fmt(totalClosed)}</td><td>{fmt(totalCommit)}</td><td>{fmt(totalBestCase)}</td><td>{fmt(totalPipeline)}</td><td>{attainment}%</td><td style={{ color: gapToQuota > 0 ? '#dc2626' : '#16a34a' }}>{gapToQuota > 0 ? `-${fmt(gapToQuota)}` : `+${fmt(Math.abs(gapToQuota))}`}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -159,9 +153,7 @@ export default function ForecastRollup() {
 
             {tableTab === 'deals' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid #e5e7eb', fontSize: 11, color: '#7B9CAF' }}>
-                  {filteredDeals.length} deals — {fmt(filteredDeals.reduce((s, d) => s + d.amount, 0))} {selectedMetric && `• ${selectedMetric}`} {drillRep && `• ${drillRep}`}
-                </div>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid #e5e7eb', fontSize: 11, color: '#7B9CAF' }}>{filteredDeals.length} deals — {fmt(filteredDeals.reduce((s, d) => s + d.amount, 0))} {selectedMetric && `• ${selectedMetric}`} {drillRep && `• ${drillRep}`}</div>
                 <table>
                   <thead><tr><th>Deal</th><th>Amount</th><th>Category</th><th>Owner</th><th>Close</th><th>Change</th></tr></thead>
                   <tbody>
@@ -179,54 +171,61 @@ export default function ForecastRollup() {
                 </table>
               </div>
             )}
-
-            {/* Submit */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
-              <input type="number" placeholder={`Override: ${fmt(totalClosed + totalCommit)}`} value={managerOverride} onChange={e => setManagerOverride(e.target.value)} style={{ flex: 1, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
-              <input placeholder="Notes..." value={submissionNote} onChange={e => setSubmissionNote(e.target.value)} style={{ flex: 2, padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
-              <button className="btn btn-primary" onClick={handleSubmit} style={{ fontSize: 11 }}>Submit</button>
-            </div>
-            {submitted && <div style={{ marginTop: 8, padding: 8, background: '#dcfce7', borderRadius: 6, fontSize: 10, color: '#16a34a', textAlign: 'center' }}>✓ Forecast submitted</div>}
           </div>
 
-          {/* RIGHT: AI Insights + Actions stacked vertically */}
+          {/* RIGHT: Circular charts + Insights + Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* AI Confidence */}
-            <div className="card" style={{ padding: '14px 16px', textAlign: 'center', background: '#fff8f3', border: '1px solid #ffc89e' }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#FE7916' }}>74%</div>
-              <div style={{ fontSize: 10, color: '#7B9CAF', marginBottom: 6 }}>AI Confidence Score</div>
-              <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.5 }}>74% probability of hitting committed number. Key risk: 3 stalled deals.</div>
-            </div>
-
-            {/* Insights */}
-            <div className="card" style={{ padding: '14px 16px' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FE7916' }} /> Insights
-              </div>
+            {/* Circular Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               {[
-                { type: 'risk', text: 'Cloud Migration ($85K) — 14 days no activity, likely slipping.' },
-                { type: 'up', text: 'Sarah Kim at 92% — has capacity for 2 more deals.' },
-                { type: 'pattern', text: '4 commit deals have single-threaded contact. Multi-thread to de-risk.' },
-                { type: 'forecast', text: 'Factor 8% slippage — commit likely lands at $520K.' },
-              ].map((ins, i) => (
-                <div key={i} style={{ padding: '8px 10px', background: '#fafbfc', borderRadius: 6, marginBottom: 6, fontSize: 10, lineHeight: 1.6, color: '#475569' }}>
-                  <span style={{ fontWeight: 700, color: ins.type === 'risk' ? '#dc2626' : ins.type === 'up' ? '#16a34a' : '#FE7916' }}>{ins.type === 'risk' ? '⚠' : ins.type === 'up' ? '↑' : '◎'}</span> {ins.text}
+                { label: 'Attainment', value: attainment, color: '#FE7916' },
+                { label: 'AI Confidence', value: 74, color: '#16a34a' },
+                { label: 'Coverage', value: Math.min(100, Math.round((totalPipeline / totalQuota) * 100)), color: '#7B9CAF' },
+              ].map((m, i) => (
+                <div key={i} className="card" style={{ padding: 12, textAlign: 'center' }}>
+                  <div style={{ position: 'relative', width: 60, height: 60, margin: '0 auto 6px' }}>
+                    <svg width="60" height="60" viewBox="0 0 60 60">
+                      <circle cx="30" cy="30" r="26" fill="none" stroke="#f1f5f9" strokeWidth="5" />
+                      <circle cx="30" cy="30" r="26" fill="none" stroke={m.color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${m.value * 1.63} 163`} transform="rotate(-90 30 30)" />
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}%</div>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#7B9CAF' }}>{m.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Actions */}
+            {/* Gap to Quota */}
+            <div className="card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div><div style={{ fontSize: 10, color: '#7B9CAF' }}>Gap to Quota</div><div style={{ fontSize: 18, fontWeight: 800, color: gapToQuota > 0 ? '#dc2626' : '#16a34a' }}>{gapToQuota > 0 ? `-${fmt(gapToQuota)}` : `+${fmt(Math.abs(gapToQuota))}`}</div></div>
+              <div style={{ textAlign: 'right' }}><div style={{ fontSize: 10, color: '#7B9CAF' }}>Quota</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmt(totalQuota)}</div></div>
+            </div>
+
+            {/* Insights */}
+            <div className="card" style={{ padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FE7916' }} /> AI Insights</div>
+              {[
+                { icon: '⚠', color: '#dc2626', text: 'Cloud Migration ($85K) — 14d no activity, likely slipping.' },
+                { icon: '↑', color: '#16a34a', text: 'Sarah Kim at 92% — capacity for 2 more deals.' },
+                { icon: '◎', color: '#FE7916', text: '4 commit deals single-threaded. Multi-thread to de-risk.' },
+                { icon: '◈', color: '#FE7916', text: 'Factor 8% slippage — commit likely lands $520K.' },
+              ].map((ins, i) => (
+                <div key={i} style={{ padding: '8px 10px', background: '#fafbfc', borderRadius: 6, marginBottom: 6, fontSize: 10, lineHeight: 1.6, color: '#475569' }}><span style={{ color: ins.color, fontWeight: 700 }}>{ins.icon}</span> {ins.text}</div>
+              ))}
+            </div>
+
+            {/* Recommended Actions */}
             <div className="card" style={{ padding: '14px 16px' }}>
               <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>Recommended Actions</div>
               {[
                 { action: 'Multi-thread Acme deal', impact: '+$30K' },
-                { action: 'Send breakup to 3 stalled Best Case', impact: 'De-risk' },
+                { action: 'Breakup email to 3 stalled Best Case', impact: 'De-risk' },
                 { action: 'Move Beta Inc to next Q', impact: 'Accuracy' },
-                { action: 'Get exec sponsor on ERP deal', impact: '+$420K' },
+                { action: 'Exec sponsor intro on ERP deal', impact: '+$420K' },
               ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
                   <input type="checkbox" style={{ accentColor: '#FE7916' }} />
-                  <span style={{ flex: 1, fontSize: 10, color: '#1e293b' }}>{item.action}</span>
+                  <span style={{ flex: 1, fontSize: 10 }}>{item.action}</span>
                   <span style={{ fontSize: 9, color: '#FE7916', fontWeight: 600 }}>{item.impact}</span>
                 </div>
               ))}
