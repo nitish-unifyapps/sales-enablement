@@ -116,17 +116,17 @@ export default function Sequences() {
   const [cardSteps, setCardSteps] = useState([
     { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro with {{company_industry}} reference', day: 1, conditions: [], metrics: { replyRate: 12, openRate: 64, sent: 248 } },
     { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with personalized note', day: 1, conditions: [], metrics: { replyRate: 0, openRate: 42, sent: 248 } },
-    { id: 3, type: 'phone', title: 'Priority Call', desc: 'High-intent prospect — call immediately', day: 3, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c1' }, { from: 'Step 1', condition: 'Link clicked', id: 'c2' }], metrics: { logged: 34, replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 4, type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via calendar agent', day: 3, conditions: [{ from: 'Step 3', condition: 'Call connected', id: 'c3' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 5, type: 'auto_email', title: 'Voicemail + Email', desc: 'Reference the call attempt, offer meeting link', day: 4, conditions: [{ from: 'Step 3', condition: 'No answer', id: 'c4' }], metrics: { replyRate: 8, openRate: 52, sent: 18 } },
-    { id: 6, type: 'phone', title: 'Warm Call', desc: 'They opened email — good timing to call', day: 3, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c5' }, { from: 'Step 1', condition: 'Link NOT clicked', id: 'c6' }], metrics: { logged: 42, replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 7, type: 'task', title: 'Qualify + Next Steps', desc: 'Discovery conversation — qualify the lead', day: 3, conditions: [{ from: 'Step 6', condition: 'Call connected', id: 'c7' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 8, type: 'auto_email', title: 'Case Study Email', desc: 'Send relevant social proof + CTA', day: 5, conditions: [{ from: 'Step 6', condition: 'No answer', id: 'c8' }], metrics: { replyRate: 6, openRate: 48, sent: 28 } },
-    { id: 9, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Mention email + ask for quick chat', day: 4, conditions: [{ from: 'Step 1', condition: 'Email NOT opened', id: 'c9' }, { from: 'Step 2', condition: 'Connection accepted', id: 'c10' }], metrics: { replyRate: 18, openRate: 0, sent: 64 } },
-    { id: 10, type: 'ai_branch', title: 'AI: Schedule Meeting', desc: 'Auto-book from LinkedIn reply', day: 5, conditions: [{ from: 'Step 9', condition: 'DM replied', id: 'c11' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 11, type: 'auto_email', title: 'Follow-up Email #2', desc: 'Different angle — new subject line', day: 4, conditions: [{ from: 'Step 1', condition: 'Email NOT opened', id: 'c12' }, { from: 'Step 2', condition: 'NOT connected', id: 'c13' }], metrics: { replyRate: 5, openRate: 38, sent: 86 } },
-    { id: 12, type: 'phone', title: 'Follow-up Call', desc: 'They engaged with email #2 — call now', day: 6, conditions: [{ from: 'Step 11', condition: 'Email opened', id: 'c14' }], metrics: { logged: 22, replyRate: 0, openRate: 0, sent: 0 } },
-    { id: 13, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — close the loop with urgency', day: 7, conditions: [{ from: 'Step 9', condition: 'No DM reply', id: 'c15' }, { from: 'Step 11', condition: 'Email NOT opened', id: 'c16' }], metrics: { replyRate: 4, openRate: 45, sent: 108 } },
+    { id: 3, type: 'phone', title: 'Priority Call', desc: 'High-intent prospect — call immediately', day: 3, conditions: [{ from: 'Intro Email', condition: 'Email opened', id: 'c1' }, { from: 'Intro Email', condition: 'Link clicked', id: 'c2' }], metrics: { logged: 34, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 4, type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via calendar agent', day: 3, conditions: [{ from: 'Priority Call', condition: 'Call connected', id: 'c3' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 5, type: 'auto_email', title: 'Voicemail + Email', desc: 'Reference the call attempt, offer meeting link', day: 4, conditions: [{ from: 'Priority Call', condition: 'No answer', id: 'c4' }], metrics: { replyRate: 8, openRate: 52, sent: 18 } },
+    { id: 6, type: 'phone', title: 'Warm Call', desc: 'They opened email — good timing to call', day: 3, conditions: [{ from: 'Intro Email', condition: 'Email opened', id: 'c5' }, { from: 'Intro Email', condition: 'No link click', id: 'c6' }], metrics: { logged: 42, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 7, type: 'task', title: 'Qualify + Next Steps', desc: 'Discovery conversation — qualify the lead', day: 3, conditions: [{ from: 'Warm Call', condition: 'Call connected', id: 'c7' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 8, type: 'auto_email', title: 'Case Study Email', desc: 'Send relevant social proof + CTA', day: 5, conditions: [{ from: 'Warm Call', condition: 'No answer', id: 'c8' }], metrics: { replyRate: 6, openRate: 48, sent: 28 } },
+    { id: 9, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Mention email + ask for quick chat', day: 4, conditions: [{ from: 'Intro Email', condition: 'Not opened', id: 'c9' }, { from: 'LinkedIn Connect', condition: 'Accepted', id: 'c10' }], metrics: { replyRate: 18, openRate: 0, sent: 64 } },
+    { id: 10, type: 'ai_branch', title: 'AI: Schedule Meeting', desc: 'Auto-book from LinkedIn reply', day: 5, conditions: [{ from: 'LinkedIn DM', condition: 'Replied', id: 'c11' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 11, type: 'auto_email', title: 'Follow-up Email #2', desc: 'Different angle — new subject line', day: 4, conditions: [{ from: 'Intro Email', condition: 'Not opened', id: 'c12' }, { from: 'LinkedIn Connect', condition: 'Not accepted', id: 'c13' }], metrics: { replyRate: 5, openRate: 38, sent: 86 } },
+    { id: 12, type: 'phone', title: 'Follow-up Call', desc: 'They engaged with email #2 — call now', day: 6, conditions: [{ from: 'Follow-up Email #2', condition: 'Email opened', id: 'c14' }], metrics: { logged: 22, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 13, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — close the loop with urgency', day: 7, conditions: [{ from: 'LinkedIn DM', condition: 'No reply', id: 'c15' }, { from: 'Follow-up Email #2', condition: 'Not opened', id: 'c16' }], metrics: { replyRate: 4, openRate: 45, sent: 108 } },
   ])
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
@@ -342,19 +342,19 @@ export default function Sequences() {
                           const hasConditions = step.conditions.length > 0
                           return (
                             <div key={step.id} style={{ marginBottom: 10 }}>
-                              {/* Conditions block — clickable, editable inline */}
+                              {/* Conditions block — clean, readable */}
                               {hasConditions && (
-                                <div style={{ marginLeft: 12, marginBottom: 4, padding: '8px 12px', background: '#fafbfc', border: '1px dashed #e5e7eb', borderRadius: 8, borderLeft: '3px solid #FE7916' }}>
+                                <div style={{ marginLeft: 12, marginBottom: 6, padding: '8px 14px', background: '#fafbfc', border: '1px solid #f1f5f9', borderRadius: 8, borderLeft: '3px solid #FE7916' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                    <span style={{ fontSize: 9, fontWeight: 700, color: '#FE7916', textTransform: 'uppercase' }}>IF</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: '#FE7916' }}>IF</span>
                                     {step.conditions.map((c, ci) => (
                                       <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                         {ci > 0 && <span style={{ fontSize: 9, color: '#7B9CAF', fontWeight: 600 }}>AND</span>}
-                                        <span style={{ fontSize: 10, padding: '2px 8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 4, color: '#475569' }}>{c.from} → {c.condition}</span>
-                                        <button onClick={(e) => { e.stopPropagation(); const u = { ...step, conditions: step.conditions.filter((_, i) => i !== ci) }; setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); if (isSelected) setSelectedStep(u) }} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 10, padding: '0 2px' }}>×</button>
+                                        <span style={{ fontSize: 10, padding: '3px 8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 4, color: '#475569' }}>{c.from} — {c.condition}</span>
+                                        <button onClick={(e) => { e.stopPropagation(); const u = { ...step, conditions: step.conditions.filter((_, i) => i !== ci) }; setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); if (isSelected) setSelectedStep(u) }} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1 }}>‒</button>
                                       </span>
                                     ))}
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStep(step) }} style={{ width: 18, height: 18, borderRadius: 4, border: '1px dashed #FE7916', background: '#fff', color: '#FE7916', cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStep(step) }} style={{ width: 18, height: 18, borderRadius: 4, border: '1px dashed #FE7916', background: '#fff', color: '#FE7916', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
                                   </div>
                                 </div>
                               )}
@@ -383,7 +383,7 @@ export default function Sequences() {
                         {/* Add step / condition below day group */}
                         <div style={{ display: 'flex', gap: 8, marginTop: 8, paddingLeft: 12 }}>
                           <button onClick={() => setCardSteps([...cardSteps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day, conditions: [], metrics: { replyRate: 0, openRate: 0, sent: 0 } }])} style={{ padding: '5px 10px', background: '#fff', border: '1px dashed #e5e7eb', borderRadius: 6, fontSize: 10, color: '#7B9CAF', cursor: 'pointer' }}>+ Step</button>
-                          <button onClick={() => setCardSteps([...cardSteps, { id: Date.now(), type: 'auto_email', title: 'Conditional Step', desc: '', day, conditions: [{ id: 'c' + Date.now(), from: `Step ${cardSteps.length}`, condition: 'No reply' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } }])} style={{ padding: '5px 10px', background: '#fff', border: '1px dashed #FE7916', borderRadius: 6, fontSize: 10, color: '#FE7916', cursor: 'pointer' }}>+ Conditional Step</button>
+                          <button onClick={() => { const lastStep = daySteps[daySteps.length - 1]; setCardSteps([...cardSteps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day, conditions: [{ id: 'c' + Date.now(), from: lastStep?.title || 'Previous', condition: 'No reply' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } }]) }} style={{ padding: '5px 10px', background: '#fff', border: '1px dashed #FE7916', borderRadius: 6, fontSize: 10, color: '#FE7916', cursor: 'pointer' }}>+ Conditional Step</button>
                         </div>
                       </div>
                     )
@@ -470,14 +470,14 @@ export default function Sequences() {
                         <button onClick={() => { const u = { ...selectedStep, conditions: selectedStep.conditions.filter((_, i) => i !== ci) }; setSelectedStep(u); setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)) }} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 11 }}>×</button>
                       </div>
                     ))}
-                    <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                    <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
                       <select id="cd-step" style={{ flex: 1, padding: '5px', border: '1px solid #e5e7eb', borderRadius: 5, fontSize: 10 }}>
                         {cardSteps.filter(s => s.id !== selectedStep.id && cardSteps.indexOf(s) < cardSteps.indexOf(selectedStep)).map(s => (
-                          <option key={s.id} value={`Step ${cardSteps.indexOf(s) + 1}`}>Step {cardSteps.indexOf(s) + 1}</option>
+                          <option key={s.id} value={s.title}>{s.title}</option>
                         ))}
                       </select>
                       <select id="cd-cond" style={{ flex: 1, padding: '5px', border: '1px solid #e5e7eb', borderRadius: 5, fontSize: 10 }}>
-                        <option>No reply</option><option>Email opened</option><option>Link clicked</option><option>No answer</option><option>Connected</option><option>Not connected</option><option>No engagement</option>
+                        <option>No reply</option><option>Email opened</option><option>Not opened</option><option>Link clicked</option><option>No link click</option><option>No answer</option><option>Call connected</option><option>Accepted</option><option>Not accepted</option><option>Replied</option><option>No reply</option><option>No engagement</option>
                       </select>
                       <button className="btn btn-sm btn-primary" style={{ padding: '4px 8px', fontSize: 10 }} onClick={() => {
                         const f = document.getElementById('cd-step')?.value; const c = document.getElementById('cd-cond')?.value
