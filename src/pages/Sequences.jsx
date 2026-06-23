@@ -21,72 +21,68 @@ const initialSequences = [
 ]
 
 const initialSteps = {
-  id: 'start',
-  type: 'trigger',
-  title: 'Prospect Enters',
-  desc: 'New lead added to sequence',
-  day: 0,
-  next: [
-    {
-      id: 's1', type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro', day: 1,
-      next: [
-        {
-          id: 's2', type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request', day: 1,
-          next: [
-            {
-              id: 'c1', type: 'condition', title: 'Email Opened?', desc: '', day: 2,
-              branches: [
-                {
-                  label: 'YES',
-                  color: '#16a34a',
-                  next: [
-                    { id: 's3', type: 'phone', title: 'Discovery Call', desc: 'High-intent call', day: 3,
-                      next: [
-                        { id: 'c2', type: 'condition', title: 'Connected?', desc: '', day: 3,
-                          branches: [
-                            { label: 'YES', color: '#16a34a', next: [
-                              { id: 's6', type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via agent', day: 4, next: [] }
-                            ]},
-                            { label: 'NO', color: '#dc2626', next: [
-                              { id: 's7', type: 'auto_email', title: 'Voicemail Follow-up', desc: 'Reference call attempt', day: 4, next: [] }
-                            ]}
-                          ]
-                        }
-                      ]
-                    }
+  id: 'start', type: 'trigger', title: 'Lead Enters Sequence', desc: 'New prospect added', day: 0,
+  next: [{
+    id: 'd1_email', type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro', day: 1,
+    next: [{
+      id: 'd1_li', type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with note', day: 1,
+      next: [{
+        id: 'c1', type: 'condition', title: 'Email Opened?', desc: '', day: 2,
+        branches: [
+          { label: 'YES', color: '#16a34a', next: [{
+            id: 'c2', type: 'condition', title: 'Link Clicked?', desc: '', day: 2,
+            branches: [
+              { label: 'YES', color: '#16a34a', next: [{
+                id: 'd3_hotcall', type: 'phone', title: 'Priority Call', desc: 'High-intent — call now', day: 3,
+                next: [{
+                  id: 'c3', type: 'condition', title: 'Call Connected?', desc: '', day: 3,
+                  branches: [
+                    { label: 'YES', color: '#16a34a', next: [{ id: 'end_book', type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via agent', day: 3, next: [] }] },
+                    { label: 'NO', color: '#dc2626', next: [{ id: 'd4_vm', type: 'auto_email', title: 'Voicemail + Email', desc: 'Reference call attempt', day: 4, next: [] }] }
                   ]
-                },
-                {
-                  label: 'NO',
-                  color: '#dc2626',
-                  next: [
-                    { id: 's4', type: 'auto_email', title: 'Follow-up Email', desc: 'Value-add content', day: 3,
-                      next: [
-                        { id: 's5', type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Casual message', day: 5,
-                          next: [
-                            { id: 'c3', type: 'condition', title: 'Any Reply?', desc: '', day: 7,
-                              branches: [
-                                { label: 'YES', color: '#16a34a', next: [
-                                  { id: 's8', type: 'ai_branch', title: 'AI: Route', desc: 'Sentiment → action', day: 7, next: [] }
-                                ]},
-                                { label: 'NO', color: '#dc2626', next: [
-                                  { id: 's9', type: 'auto_email', title: 'Breakup Email', desc: 'Final touch', day: 10, next: [] }
-                                ]}
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                }]
+              }] },
+              { label: 'NO', color: '#dc2626', next: [{
+                id: 'd3_warmcall', type: 'phone', title: 'Warm Call', desc: 'Opened email — good timing', day: 3,
+                next: [{
+                  id: 'c4', type: 'condition', title: 'Connected?', desc: '', day: 3,
+                  branches: [
+                    { label: 'YES', color: '#16a34a', next: [{ id: 'd3_qualify', type: 'task', title: 'Qualify + Next Steps', desc: 'Discovery on call', day: 3, next: [] }] },
+                    { label: 'NO', color: '#dc2626', next: [{ id: 'd5_case', type: 'auto_email', title: 'Case Study Email', desc: 'Social proof follow-up', day: 5, next: [] }] }
                   ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+                }]
+              }] }
+            ]
+          }] },
+          { label: 'NO', color: '#dc2626', next: [{
+            id: 'c5', type: 'condition', title: 'LinkedIn Accepted?', desc: '', day: 3,
+            branches: [
+              { label: 'YES', color: '#16a34a', next: [{
+                id: 'd4_lidm', type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Mention email + ask for time', day: 4,
+                next: [{
+                  id: 'c6', type: 'condition', title: 'DM Replied?', desc: '', day: 5,
+                  branches: [
+                    { label: 'YES', color: '#16a34a', next: [{ id: 'end_book2', type: 'ai_branch', title: 'AI: Schedule', desc: 'Book meeting from DM', day: 5, next: [] }] },
+                    { label: 'NO', color: '#dc2626', next: [{ id: 'd7_break1', type: 'auto_email', title: 'Breakup Email', desc: 'Final attempt', day: 7, next: [] }] }
+                  ]
+                }]
+              }] },
+              { label: 'NO', color: '#dc2626', next: [{
+                id: 'd4_retry', type: 'auto_email', title: 'Follow-up Email #2', desc: 'New angle/subject line', day: 4,
+                next: [{
+                  id: 'c7', type: 'condition', title: 'Email #2 Opened?', desc: '', day: 5,
+                  branches: [
+                    { label: 'YES', color: '#16a34a', next: [{ id: 'd6_call2', type: 'phone', title: 'Follow-up Call', desc: 'They engaged — try now', day: 6, next: [] }] },
+                    { label: 'NO', color: '#dc2626', next: [{ id: 'd7_break2', type: 'auto_email', title: 'Breakup Email', desc: 'Close the loop', day: 7, next: [] }] }
+                  ]
+                }]
+              }] }
+            ]
+          }] }
+        ]
+      }]
+    }]
+  }]
 }
 
 const initialProspects = [
@@ -116,16 +112,21 @@ export default function Sequences() {
   const [selectedStep, setSelectedStep] = useState(null)
   const [copilotOpen, setCopilotOpen] = useState(true)
 
-  // Flat steps for Cards view
+  // Flat steps for Cards view — same sequence as tree but shown linearly with conditions
   const [cardSteps, setCardSteps] = useState([
-    { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized intro referencing {{company_industry}}', day: 1, conditions: [], metrics: { replyRate: 12, openRate: 64, sent: 142 } },
-    { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Personalized connection request', day: 1, conditions: [], metrics: { replyRate: 0, openRate: 42, sent: 142 } },
-    { id: 3, type: 'auto_email', title: 'Follow-up Email', desc: 'Value-add content if no reply', day: 3, conditions: [{ from: 'Step 1', condition: 'No reply', id: 'c1' }], metrics: { replyRate: 8, openRate: 58, sent: 98 } },
-    { id: 4, type: 'phone', title: 'Discovery Call', desc: 'Use discovery script. Voicemail if no answer.', day: 4, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c2' }], metrics: { replyRate: 0, openRate: 0, sent: 0, logged: 24 } },
-    { id: 5, type: 'linkedin_msg', title: 'LinkedIn Message', desc: 'Reference email + ask for meeting', day: 5, conditions: [{ from: 'Step 2', condition: 'Connection accepted', id: 'c3' }], metrics: { replyRate: 18, openRate: 0, sent: 86 } },
-    { id: 6, type: 'auto_email', title: 'Case Study Email', desc: 'Industry-relevant social proof', day: 7, conditions: [{ from: 'Step 3', condition: 'No reply', id: 'c4' }, { from: 'Step 4', condition: 'No answer', id: 'c5' }], metrics: { replyRate: 6, openRate: 52, sent: 72 } },
-    { id: 7, type: 'phone', title: 'Call #2 + Voicemail', desc: 'Mention LinkedIn, drop voicemail', day: 9, conditions: [{ from: 'Step 6', condition: 'Email opened', id: 'c6' }], metrics: { replyRate: 0, openRate: 0, sent: 0, logged: 18 } },
-    { id: 8, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — create urgency', day: 12, conditions: [{ from: 'Step 5', condition: 'No reply', id: 'c7' }, { from: 'Step 6', condition: 'No reply', id: 'c8' }], metrics: { replyRate: 4, openRate: 45, sent: 64 } },
+    { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized cold intro with {{company_industry}} reference', day: 1, conditions: [], metrics: { replyRate: 12, openRate: 64, sent: 248 } },
+    { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Connection request with personalized note', day: 1, conditions: [], metrics: { replyRate: 0, openRate: 42, sent: 248 } },
+    { id: 3, type: 'phone', title: 'Priority Call', desc: 'High-intent prospect — call immediately', day: 3, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c1' }, { from: 'Step 1', condition: 'Link clicked', id: 'c2' }], metrics: { logged: 34, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 4, type: 'ai_branch', title: 'AI: Book Meeting', desc: 'Auto-schedule via calendar agent', day: 3, conditions: [{ from: 'Step 3', condition: 'Call connected', id: 'c3' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 5, type: 'auto_email', title: 'Voicemail + Email', desc: 'Reference the call attempt, offer meeting link', day: 4, conditions: [{ from: 'Step 3', condition: 'No answer', id: 'c4' }], metrics: { replyRate: 8, openRate: 52, sent: 18 } },
+    { id: 6, type: 'phone', title: 'Warm Call', desc: 'They opened email — good timing to call', day: 3, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c5' }, { from: 'Step 1', condition: 'Link NOT clicked', id: 'c6' }], metrics: { logged: 42, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 7, type: 'task', title: 'Qualify + Next Steps', desc: 'Discovery conversation — qualify the lead', day: 3, conditions: [{ from: 'Step 6', condition: 'Call connected', id: 'c7' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 8, type: 'auto_email', title: 'Case Study Email', desc: 'Send relevant social proof + CTA', day: 5, conditions: [{ from: 'Step 6', condition: 'No answer', id: 'c8' }], metrics: { replyRate: 6, openRate: 48, sent: 28 } },
+    { id: 9, type: 'linkedin_msg', title: 'LinkedIn DM', desc: 'Mention email + ask for quick chat', day: 4, conditions: [{ from: 'Step 1', condition: 'Email NOT opened', id: 'c9' }, { from: 'Step 2', condition: 'Connection accepted', id: 'c10' }], metrics: { replyRate: 18, openRate: 0, sent: 64 } },
+    { id: 10, type: 'ai_branch', title: 'AI: Schedule Meeting', desc: 'Auto-book from LinkedIn reply', day: 5, conditions: [{ from: 'Step 9', condition: 'DM replied', id: 'c11' }], metrics: { replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 11, type: 'auto_email', title: 'Follow-up Email #2', desc: 'Different angle — new subject line', day: 4, conditions: [{ from: 'Step 1', condition: 'Email NOT opened', id: 'c12' }, { from: 'Step 2', condition: 'NOT connected', id: 'c13' }], metrics: { replyRate: 5, openRate: 38, sent: 86 } },
+    { id: 12, type: 'phone', title: 'Follow-up Call', desc: 'They engaged with email #2 — call now', day: 6, conditions: [{ from: 'Step 11', condition: 'Email opened', id: 'c14' }], metrics: { logged: 22, replyRate: 0, openRate: 0, sent: 0 } },
+    { id: 13, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — close the loop with urgency', day: 7, conditions: [{ from: 'Step 9', condition: 'No DM reply', id: 'c15' }, { from: 'Step 11', condition: 'Email NOT opened', id: 'c16' }], metrics: { replyRate: 4, openRate: 45, sent: 108 } },
   ])
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
