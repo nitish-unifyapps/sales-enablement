@@ -111,9 +111,21 @@ export default function Sequences() {
   const [steps, setSteps] = useState(initialSteps)
   const [prospects, setProspects] = useState(initialProspects)
   const [selectedSeq, setSelectedSeq] = useState(null)
-  const [builderTab, setBuilderTab] = useState('steps')
+  const [builderTab, setBuilderTab] = useState('cards')
   const [selectedStep, setSelectedStep] = useState(null)
   const [copilotOpen, setCopilotOpen] = useState(true)
+
+  // Flat steps for Cards view
+  const [cardSteps, setCardSteps] = useState([
+    { id: 1, type: 'auto_email', title: 'Intro Email', desc: 'Personalized intro referencing {{company_industry}}', day: 1, conditions: [], metrics: { replyRate: 12, openRate: 64, sent: 142 } },
+    { id: 2, type: 'linkedin_connect', title: 'LinkedIn Connect', desc: 'Personalized connection request', day: 1, conditions: [], metrics: { replyRate: 0, openRate: 42, sent: 142 } },
+    { id: 3, type: 'auto_email', title: 'Follow-up Email', desc: 'Value-add content if no reply', day: 3, conditions: [{ from: 'Step 1', condition: 'No reply', id: 'c1' }], metrics: { replyRate: 8, openRate: 58, sent: 98 } },
+    { id: 4, type: 'phone', title: 'Discovery Call', desc: 'Use discovery script. Voicemail if no answer.', day: 4, conditions: [{ from: 'Step 1', condition: 'Email opened', id: 'c2' }], metrics: { replyRate: 0, openRate: 0, sent: 0, logged: 24 } },
+    { id: 5, type: 'linkedin_msg', title: 'LinkedIn Message', desc: 'Reference email + ask for meeting', day: 5, conditions: [{ from: 'Step 2', condition: 'Connection accepted', id: 'c3' }], metrics: { replyRate: 18, openRate: 0, sent: 86 } },
+    { id: 6, type: 'auto_email', title: 'Case Study Email', desc: 'Industry-relevant social proof', day: 7, conditions: [{ from: 'Step 3', condition: 'No reply', id: 'c4' }, { from: 'Step 4', condition: 'No answer', id: 'c5' }], metrics: { replyRate: 6, openRate: 52, sent: 72 } },
+    { id: 7, type: 'phone', title: 'Call #2 + Voicemail', desc: 'Mention LinkedIn, drop voicemail', day: 9, conditions: [{ from: 'Step 6', condition: 'Email opened', id: 'c6' }], metrics: { replyRate: 0, openRate: 0, sent: 0, logged: 18 } },
+    { id: 8, type: 'auto_email', title: 'Breakup Email', desc: 'Final touch — create urgency', day: 12, conditions: [{ from: 'Step 5', condition: 'No reply', id: 'c7' }, { from: 'Step 6', condition: 'No reply', id: 'c8' }], metrics: { replyRate: 4, openRate: 45, sent: 64 } },
+  ])
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pendingStep, setPendingStep] = useState(null)
@@ -312,6 +324,7 @@ export default function Sequences() {
                 <span style={{ fontSize: 14, fontWeight: 700 }}>{selectedSeq?.name || 'New Sequence'}</span>
               </div>
               <div className="view-toggle">
+                <button className={builderTab === 'cards' ? 'active' : ''} onClick={() => setBuilderTab('cards')}>Steps</button>
                 <button className={builderTab === 'steps' ? 'active' : ''} onClick={() => setBuilderTab('steps')}>Flow</button>
                 <button className={builderTab === 'prospects' ? 'active' : ''} onClick={() => setBuilderTab('prospects')}>Prospects</button>
                 <button className={builderTab === 'settings' ? 'active' : ''} onClick={() => setBuilderTab('settings')}>Settings</button>
@@ -320,6 +333,58 @@ export default function Sequences() {
 
             {/* Canvas area */}
             <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
+
+              {/* CARDS VIEW */}
+              {builderTab === 'cards' && (
+                <div style={{ padding: 20 }}>
+                  {/* Group by day */}
+                  {[...new Set(cardSteps.map(s => s.day))].sort((a, b) => a - b).map(day => (
+                    <div key={day} style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', padding: '8px 0', borderBottom: '1px solid #e5e7eb', marginBottom: 12 }}>Day {day}</div>
+                      {cardSteps.filter(s => s.day === day).map((step, idx) => {
+                        const stepIdx = cardSteps.indexOf(step)
+                        const isSelected = selectedStep?.id === step.id
+                        return (
+                          <div key={step.id} onClick={() => setSelectedStep(step)} style={{ background: isSelected ? '#eef2ff' : '#fff', border: `1px solid ${isSelected ? '#6366f1' : '#e5e7eb'}`, borderRadius: 10, padding: 0, marginBottom: 10, cursor: 'pointer', overflow: 'hidden', transition: 'all .12s' }}>
+                            {/* Conditions bar at top */}
+                            {step.conditions.length > 0 && (
+                              <div style={{ padding: '6px 14px', background: '#f8f9fb', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {step.conditions.map(c => (
+                                  <span key={c.id} style={{ fontSize: 10, padding: '2px 8px', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, color: '#6366f1', fontWeight: 500 }}>
+                                    {c.from}: {c.condition}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {/* Step content */}
+                            <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <span style={{ color: '#d1d5db', fontSize: 14, cursor: 'grab', userSelect: 'none' }}>⋮⋮</span>
+                              <div style={{ width: 28, height: 28, borderRadius: 6, border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{stepIdx + 1}</div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 13, fontWeight: 600 }}>{step.title} <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 400 }}>({stepTypes.find(t => t.type === step.type)?.label})</span></div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{step.desc}</div>
+                              </div>
+                              {/* Metrics */}
+                              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#64748b', flexShrink: 0 }}>
+                                {step.metrics.replyRate !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.replyRate}%</div><div>Reply</div></div>}
+                                {step.metrics.openRate !== undefined && step.metrics.openRate > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.openRate}%</div><div>Open</div></div>}
+                                {step.metrics.sent !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.sent}</div><div>Sent</div></div>}
+                                {step.metrics.logged !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.logged}</div><div>Logged</div></div>}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {/* Add Step button per day */}
+                      <div style={{ textAlign: 'center', paddingTop: 4 }}>
+                        <button className="btn btn-sm" onClick={() => setCardSteps([...cardSteps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day, conditions: [], metrics: { replyRate: 0, openRate: 0, sent: 0 } }])}>Add Step</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* FLOW VIEW */}
               {builderTab === 'steps' && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 32px', minHeight: '100%' }}>
                   {renderNode(steps)}
@@ -360,44 +425,64 @@ export default function Sequences() {
           </div>
 
           {/* RIGHT: Step Detail Drawer */}
-          {selectedStep && builderTab === 'steps' && (
+          {selectedStep && (builderTab === 'steps' || builderTab === 'cards') && (
             <div style={{ width: 320, borderLeft: '1px solid #e5e7eb', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>Step Properties</span>
                 <button onClick={() => setSelectedStep(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#94a3b8' }}>×</button>
               </div>
-              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div className="form-group"><label>Type</label><select value={selectedStep.type} onChange={e => updateStep('type', e.target.value)}>{stepTypes.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}</select></div>
-                <div className="form-group"><label>Title</label><input value={selectedStep.title} onChange={e => updateStep('title', e.target.value)} /></div>
-                <div className="form-group"><label>Description</label><textarea value={selectedStep.desc} onChange={e => updateStep('desc', e.target.value)} style={{ minHeight: 70 }} /></div>
-                <div className="form-group"><label>Day</label><input type="number" min="1" value={selectedStep.day} onChange={e => updateStep('day', parseInt(e.target.value) || 1)} /></div>
-                <div className="form-group"><label>Condition</label>
-                  <select value={selectedStep.condition || 'always'} onChange={e => updateStep('condition', e.target.value)}>
-                    <option value="always">Always execute</option>
-                    <optgroup label="Engagement"><option value="if_opened">If email opened</option><option value="if_no_open">If NOT opened</option><option value="if_clicked">If link clicked</option><option value="if_opened_3x">If opened 3+ times</option><option value="if_page_visit">If page visited</option></optgroup>
-                    <optgroup label="Reply"><option value="if_no_reply">If no reply</option><option value="if_replied">If replied</option></optgroup>
-                    <optgroup label="LinkedIn"><option value="if_connected">If connected</option><option value="if_not_connected">If NOT connected</option></optgroup>
-                    <optgroup label="Escalation"><option value="if_no_engagement_3">No engagement 3 steps</option><option value="if_no_engagement_7d">No engagement 7 days</option></optgroup>
+              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="form-group"><label>Type</label>
+                  <select value={selectedStep.type} onChange={e => { const u = { ...selectedStep, type: e.target.value }; setSelectedStep(u); if (builderTab === 'cards') setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); else updateStep('type', e.target.value) }}>
+                    {stepTypes.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
                   </select>
                 </div>
-                <div className="form-group"><label>Send Window</label>
-                  <select value={selectedStep.sendWindow || '8am-6pm'} onChange={e => updateStep('sendWindow', e.target.value)}>
-                    <option value="8am-6pm">8am — 6pm</option><option value="9am-5pm">9am — 5pm</option><option value="9am-12pm">Morning only</option><option value="anytime">Any time</option>
-                  </select>
+                <div className="form-group"><label>Title</label>
+                  <input value={selectedStep.title} onChange={e => { const u = { ...selectedStep, title: e.target.value }; setSelectedStep(u); if (builderTab === 'cards') setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); else updateStep('title', e.target.value) }} />
                 </div>
-                <div className="form-group"><label>Priority</label>
-                  <select value={selectedStep.priority || 'normal'} onChange={e => updateStep('priority', e.target.value)}>
-                    <option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option>
-                  </select>
+                <div className="form-group"><label>Description</label>
+                  <textarea value={selectedStep.desc || ''} onChange={e => { const u = { ...selectedStep, desc: e.target.value }; setSelectedStep(u); if (builderTab === 'cards') setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); else updateStep('desc', e.target.value) }} style={{ minHeight: 60 }} />
                 </div>
-                <div className="form-group"><label>On Failure</label>
-                  <select value={selectedStep.onFailure || 'skip'} onChange={e => updateStep('onFailure', e.target.value)}>
-                    <option value="skip">Skip & continue</option><option value="pause">Pause sequence</option><option value="retry">Retry next day</option><option value="notify">Notify owner</option>
-                  </select>
+                <div className="form-group"><label>Day</label>
+                  <input type="number" min="1" value={selectedStep.day} onChange={e => { const u = { ...selectedStep, day: parseInt(e.target.value) || 1 }; setSelectedStep(u); if (builderTab === 'cards') setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)); else updateStep('day', parseInt(e.target.value) || 1) }} />
                 </div>
-                <div className="form-group"><label>Template</label><input value={selectedStep.template || ''} onChange={e => updateStep('template', e.target.value)} placeholder="Link template name..." /></div>
-                <div className="form-group"><label>A/B Variant</label><textarea value={selectedStep.abVariant || ''} onChange={e => updateStep('abVariant', e.target.value)} placeholder="Alt content for split test..." style={{ minHeight: 50 }} /></div>
-                <button className="btn btn-danger" style={{ marginTop: 8 }} onClick={() => deleteStep(selectedStep.id)}>Delete Step</button>
+
+                {/* Conditions — Cards view */}
+                {builderTab === 'cards' && (
+                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>Conditions</div>
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 8 }}>Execute this step only when:</div>
+                    {(selectedStep.conditions || []).map((c, ci) => (
+                      <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, padding: '5px 8px', background: '#eef2ff', borderRadius: 6, fontSize: 11 }}>
+                        <span style={{ flex: 1 }}><strong>{c.from}</strong> → {c.condition}</span>
+                        <button onClick={() => { const u = { ...selectedStep, conditions: selectedStep.conditions.filter((_, i) => i !== ci) }; setSelectedStep(u); setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)) }} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 11 }}>×</button>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                      <select id="cd-step" style={{ flex: 1, padding: '5px', border: '1px solid #e5e7eb', borderRadius: 5, fontSize: 10 }}>
+                        {cardSteps.filter(s => s.id !== selectedStep.id && cardSteps.indexOf(s) < cardSteps.indexOf(selectedStep)).map(s => (
+                          <option key={s.id} value={`Step ${cardSteps.indexOf(s) + 1}`}>Step {cardSteps.indexOf(s) + 1}</option>
+                        ))}
+                      </select>
+                      <select id="cd-cond" style={{ flex: 1, padding: '5px', border: '1px solid #e5e7eb', borderRadius: 5, fontSize: 10 }}>
+                        <option>No reply</option><option>Email opened</option><option>Link clicked</option><option>No answer</option><option>Connected</option><option>Not connected</option><option>No engagement</option>
+                      </select>
+                      <button className="btn btn-sm btn-primary" style={{ padding: '4px 8px', fontSize: 10 }} onClick={() => {
+                        const f = document.getElementById('cd-step')?.value; const c = document.getElementById('cd-cond')?.value
+                        if (!f) return
+                        const u = { ...selectedStep, conditions: [...(selectedStep.conditions || []), { id: 'c' + Date.now(), from: f, condition: c }] }
+                        setSelectedStep(u); setCardSteps(cardSteps.map(s => s.id === u.id ? u : s))
+                      }}>+</button>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div className="form-group"><label>Send Window</label><select defaultValue="8am-6pm"><option>8am — 6pm</option><option>9am — 5pm</option><option>Morning only</option></select></div>
+                  <div className="form-group"><label>Priority</label><select defaultValue="normal"><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></div>
+                  <div className="form-group"><label>Template</label><input placeholder="Link template..." /></div>
+                </div>
+                <button className="btn btn-danger" style={{ marginTop: 8 }} onClick={() => { if (builderTab === 'cards') { setCardSteps(cardSteps.filter(s => s.id !== selectedStep.id)) } else { deleteStep(selectedStep.id) } setSelectedStep(null) }}>Delete Step</button>
               </div>
             </div>
           )}
