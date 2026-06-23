@@ -457,7 +457,19 @@ export default function Sequences() {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div className="form-group"><label>Send Window</label><select defaultValue="8am-6pm"><option>8am — 6pm</option><option>9am — 5pm</option><option>Morning only</option></select></div>
                   <div className="form-group"><label>Priority</label><select defaultValue="normal"><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></div>
-                  <div className="form-group"><label>Template</label><input placeholder="Link template..." /></div>
+                  <div className="form-group"><label>Template</label>
+                    <select value={selectedStep.template || ''} onChange={e => { const u = { ...selectedStep, template: e.target.value }; setSelectedStep(u); if (builderTab === 'cards') setCardSteps(cardSteps.map(s => s.id === u.id ? u : s)) }}>
+                      <option value="">None</option>
+                      <option value="CXO Value Prop — Q3">CXO Value Prop — Q3</option>
+                      <option value="Follow-up After No Reply">Follow-up After No Reply</option>
+                      <option value="LinkedIn Warm Connect">LinkedIn Warm Connect</option>
+                      <option value="Cold Call — Discovery">Cold Call — Discovery</option>
+                      <option value="Breakup Email">Breakup Email</option>
+                      <option value="Case Study Share">Case Study Share</option>
+                      <option value="Objection: Budget">Objection: Budget</option>
+                      <option value="Meeting Confirmation">Meeting Confirmation</option>
+                    </select>
+                  </div>
                 </div>
                 <button className="btn btn-danger" style={{ marginTop: 8 }} onClick={() => { if (builderTab === 'cards') { setCardSteps(cardSteps.filter(s => s.id !== selectedStep.id)) } else { deleteStep(selectedStep.id) } setSelectedStep(null) }}>Delete Step</button>
               </div>
