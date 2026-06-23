@@ -312,53 +312,67 @@ export default function Sequences() {
             {/* Canvas area */}
             <div style={{ flex: 1, overflow: 'auto', background: '#fafbfc', position: 'relative' }}>
 
-              {/* CARDS VIEW */}
+              {/* CARDS VIEW — intuitive path-based layout */}
               {builderTab === 'cards' && (
                 <div style={{ padding: 20 }}>
-                  {/* Group by day */}
-                  {[...new Set(cardSteps.map(s => s.day))].sort((a, b) => a - b).map(day => (
-                    <div key={day} style={{ marginBottom: 20 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', padding: '8px 0', borderBottom: '1px solid #e5e7eb', marginBottom: 12 }}>Day {day}</div>
-                      {cardSteps.filter(s => s.day === day).map((step, idx) => {
-                        const stepIdx = cardSteps.indexOf(step)
-                        const isSelected = selectedStep?.id === step.id
-                        return (
-                          <div key={step.id} onClick={() => setSelectedStep(step)} style={{ background: isSelected ? '#fff5ed' : '#fff', border: `1px solid ${isSelected ? '#FE7916' : '#e5e7eb'}`, borderRadius: 10, padding: 0, marginBottom: 10, cursor: 'pointer', overflow: 'hidden', transition: 'all .12s' }}>
-                            {/* Conditions bar at top */}
-                            {step.conditions.length > 0 && (
-                              <div style={{ padding: '6px 14px', background: '#f8f9fb', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                {step.conditions.map(c => (
-                                  <span key={c.id} style={{ fontSize: 10, padding: '2px 8px', background: '#fff5ed', border: '1px solid #ffc89e', borderRadius: 12, color: '#FE7916', fontWeight: 500 }}>
-                                    {c.from}: {c.condition}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            {/* Step content */}
-                            <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <span style={{ color: '#d1d5db', fontSize: 14, cursor: 'grab', userSelect: 'none' }}>⋮⋮</span>
-                              <div style={{ width: 28, height: 28, borderRadius: 6, border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>{stepIdx + 1}</div>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 13, fontWeight: 600 }}>{step.title} <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 400 }}>({stepTypes.find(t => t.type === step.type)?.label})</span></div>
-                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{step.desc}</div>
-                              </div>
-                              {/* Metrics */}
-                              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#64748b', flexShrink: 0 }}>
-                                {step.metrics.replyRate !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.replyRate}%</div><div>Reply</div></div>}
-                                {step.metrics.openRate !== undefined && step.metrics.openRate > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.openRate}%</div><div>Open</div></div>}
-                                {step.metrics.sent !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.sent}</div><div>Sent</div></div>}
-                                {step.metrics.logged !== undefined && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700, color: '#1e293b' }}>{step.metrics.logged}</div><div>Logged</div></div>}
+                  {/* Auto-exit bar */}
+                  <div style={{ display: 'flex', gap: 8, padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Auto-exit:</span>
+                    {['Reply received', 'Meeting booked', 'Opted out', 'Bounce'].map((e, i) => (
+                      <span key={i} style={{ fontSize: 10, padding: '3px 8px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: 12, color: '#16a34a' }}>✓ {e}</span>
+                    ))}
+                    <span style={{ fontSize: 10, color: '#7B9CAF', marginLeft: 'auto' }}>Sequence type: Outbound • Tier: All</span>
+                  </div>
+
+                  {/* Steps grouped by day with path indicators */}
+                  {[...new Set(cardSteps.map(s => s.day))].sort((a, b) => a - b).map(day => {
+                    const daySteps = cardSteps.filter(s => s.day === day)
+                    return (
+                      <div key={day} style={{ marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <div style={{ width: 44, height: 22, background: '#FE7916', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>Day {day}</div>
+                          <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+                        </div>
+                        {daySteps.map((step) => {
+                          const stepIdx = cardSteps.indexOf(step)
+                          const isSelected = selectedStep?.id === step.id
+                          const hasConditions = step.conditions.length > 0
+                          return (
+                            <div key={step.id} onClick={() => setSelectedStep(step)} style={{ marginBottom: 8, marginLeft: hasConditions ? 20 : 0, borderLeft: hasConditions ? '3px solid #ffc89e' : 'none', paddingLeft: hasConditions ? 12 : 0 }}>
+                              {/* Path label — when this step triggers */}
+                              {hasConditions && (
+                                <div style={{ display: 'flex', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                                  {step.conditions.map((c, ci) => (
+                                    <span key={c.id} style={{ fontSize: 10, color: '#7B9CAF', fontWeight: 500 }}>
+                                      {ci > 0 ? '+ ' : 'When '}{c.from} → {c.condition}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {/* Step card */}
+                              <div style={{ background: isSelected ? '#fff8f3' : '#fff', border: `1px solid ${isSelected ? '#FE7916' : '#e5e7eb'}`, borderRadius: 8, padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, transition: 'all .1s' }}>
+                                <div style={{ width: 24, height: 24, borderRadius: 6, background: '#f8f9fb', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7B9CAF', flexShrink: 0 }}>{stepIdx + 1}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    {step.title}
+                                    <span style={{ fontSize: 9, color: '#7B9CAF', fontWeight: 500 }}>{stepTypes.find(t => t.type === step.type)?.label}</span>
+                                  </div>
+                                  <div style={{ fontSize: 11, color: '#7B9CAF', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{step.desc}</div>
+                                </div>
+                                {/* Metrics */}
+                                <div style={{ display: 'flex', gap: 12, flexShrink: 0, fontSize: 11 }}>
+                                  {step.metrics.openRate > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700 }}>{step.metrics.openRate}%</div><div style={{ color: '#7B9CAF', fontSize: 9 }}>Open</div></div>}
+                                  {step.metrics.replyRate > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700 }}>{step.metrics.replyRate}%</div><div style={{ color: '#7B9CAF', fontSize: 9 }}>Reply</div></div>}
+                                  {step.metrics.sent > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700 }}>{step.metrics.sent}</div><div style={{ color: '#7B9CAF', fontSize: 9 }}>Sent</div></div>}
+                                  {step.metrics.logged > 0 && <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 700 }}>{step.metrics.logged}</div><div style={{ color: '#7B9CAF', fontSize: 9 }}>Calls</div></div>}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )
-                      })}
-                      {/* Add Step button per day */}
-                      <div style={{ textAlign: 'center', paddingTop: 4 }}>
-                        <button className="btn btn-sm" onClick={() => setCardSteps([...cardSteps, { id: Date.now(), type: 'auto_email', title: 'New Step', desc: '', day, conditions: [], metrics: { replyRate: 0, openRate: 0, sent: 0 } }])}>Add Step</button>
+                          )
+                        })}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
