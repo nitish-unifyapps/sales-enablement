@@ -214,6 +214,63 @@ export default function ForecastRollup() {
             )}
           </div>
         </div>
+
+        {/* AI Insights & Actions */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 20 }}>
+          <div className="card" style={{ borderLeft: '3px solid #FE7916' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FE7916', animation: 'pulse-dot 2s infinite' }} />
+              AI Insights
+            </div>
+            {[
+              { type: 'risk', text: 'Cloud Migration ($85K) has been in Proposal stage 14 days with no activity — likely to slip to next quarter.' },
+              { type: 'opportunity', text: 'Sarah Kim is 92% to quota with 6 weeks remaining. She has capacity to take on 2 more deals.' },
+              { type: 'pattern', text: 'Deals with >3 stakeholder touches close 2.4x faster. 4 commit deals currently have only 1 contact engaged.' },
+              { type: 'forecast', text: 'Based on historical velocity, current commit ($570K) will likely land at $520K — factor 8% slippage into plan.' },
+            ].map((insight, i) => (
+              <div key={i} style={{ padding: '10px 12px', background: '#fafbfc', borderRadius: 6, marginBottom: 8, fontSize: 11, lineHeight: 1.6, color: '#475569' }}>
+                <span style={{ fontWeight: 600, color: insight.type === 'risk' ? '#dc2626' : insight.type === 'opportunity' ? '#16a34a' : '#FE7916' }}>
+                  {insight.type === 'risk' ? '⚠ Risk' : insight.type === 'opportunity' ? '↑ Opportunity' : insight.type === 'pattern' ? '◎ Pattern' : '◈ Forecast'}:
+                </span>{' '}{insight.text}
+              </div>
+            ))}
+          </div>
+
+          <div className="card" style={{ borderLeft: '3px solid #16a34a' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Recommended Actions</div>
+            {[
+              { action: 'Schedule multi-thread meeting for Acme deal', owner: 'Sarah Kim', priority: 'high', impact: '+$30K confidence' },
+              { action: 'Send breakup email to 3 stalled Best Case deals', owner: 'Mike Torres', priority: 'medium', impact: 'De-risk pipeline' },
+              { action: 'Move Beta Inc to next quarter — not closeable this Q', owner: 'Mike Torres', priority: 'high', impact: 'Forecast accuracy' },
+              { action: 'Request executive sponsor intro on ERP deal', owner: 'James Park', priority: 'high', impact: '+$420K acceleration' },
+            ].map((item, i) => (
+              <div key={i} style={{ padding: '10px 12px', background: '#fafbfc', borderRadius: 6, marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <input type="checkbox" style={{ marginTop: 2, accentColor: '#FE7916' }} />
+                <div style={{ flex: 1, fontSize: 11 }}>
+                  <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.action}</div>
+                  <div style={{ color: '#7B9CAF', marginTop: 2 }}>{item.owner} • {item.impact}</div>
+                </div>
+                <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 3, background: item.priority === 'high' ? '#fee2e2' : '#fef9c3', color: item.priority === 'high' ? '#dc2626' : '#a16207', fontWeight: 600 }}>{item.priority}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Confidence Score */}
+        <div className="card" style={{ marginTop: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#FE7916' }}>74%</div>
+            <div style={{ fontSize: 10, color: '#7B9CAF' }}>AI Confidence</div>
+          </div>
+          <div style={{ flex: 1, fontSize: 11, color: '#475569', lineHeight: 1.6 }}>
+            Based on current pipeline health, deal velocity, and engagement signals — there's a <strong>74% probability</strong> your team hits the committed number this quarter. Key risk: 3 deals in commit have stalled activity.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0, fontSize: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} /> Healthy: 5 deals</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706' }} /> At risk: 3 deals</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#dc2626' }} /> Critical: 1 deal</div>
+          </div>
+        </div>
       </div>
     </div>
   )
