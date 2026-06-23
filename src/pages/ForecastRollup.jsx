@@ -88,54 +88,51 @@ export default function ForecastRollup() {
       </div>
 
       <div style={{ padding: 24 }}>
-        {/* Stage-based Chart — Quota vs Actual per stage */}
-        <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Forecast by Stage</span>
-            <div style={{ display: 'flex', gap: 14, fontSize: 10, color: '#7B9CAF' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: '#FE7916', borderRadius: 2, opacity: 0.7 }} /> Actual</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: '#7B9CAF', borderRadius: 2, opacity: 0.3 }} /> Target</span>
-            </div>
-          </div>
-          {(() => {
-            const stages = [
-              { name: 'Pipeline', actual: totalPipeline, target: 2200000 },
-              { name: 'Best Case', actual: totalBestCase, target: 600000 },
-              { name: 'Commit', actual: totalCommit, target: 700000 },
-              { name: 'Closed Won', actual: totalClosed, target: totalQuota },
-            ]
-            const maxVal = Math.max(...stages.map(s => Math.max(s.actual, s.target)))
-            return (
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24, height: 120, paddingTop: 10 }}>
-                {stages.map((s, i) => {
-                  const actualH = (s.actual / maxVal) * 100
-                  const targetH = (s.target / maxVal) * 100
-                  const pct = Math.round((s.actual / s.target) * 100)
-                  return (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: pct >= 100 ? '#16a34a' : pct >= 70 ? '#FE7916' : '#dc2626' }}>{pct}%</div>
-                      <div style={{ width: '100%', height: 90, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 4, position: 'relative' }}>
-                        {/* Target bar */}
-                        <div style={{ width: '35%', height: `${targetH}%`, background: '#7B9CAF', opacity: 0.15, borderRadius: '4px 4px 0 0' }} />
-                        {/* Actual bar */}
-                        <div style={{ width: '35%', height: `${actualH}%`, background: '#FE7916', opacity: 0.8, borderRadius: '4px 4px 0 0' }} />
-                        {/* Target line marker */}
-                        <div style={{ position: 'absolute', bottom: `${targetH}%`, left: '10%', right: '10%', height: 2, background: '#7B9CAF', borderRadius: 1 }} />
-                      </div>
-                      <div style={{ fontSize: 9, color: '#7B9CAF', textAlign: 'center' }}>{s.name}</div>
-                      <div style={{ fontSize: 9, fontWeight: 600, color: '#475569' }}>{fmt(s.actual)}</div>
-                    </div>
-                  )
-                })}
-              </div>
-            )
-          })()}
-        </div>
-
         {/* Two Column Layout — 70% left, 30% right */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
-          {/* LEFT: Tables */}
+          {/* LEFT: Chart + Tables */}
           <div>
+            {/* Stage-based Chart */}
+            <div className="card" style={{ marginBottom: 16, padding: '14px 18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 11, fontWeight: 700 }}>Forecast by Stage</span>
+                <div style={{ display: 'flex', gap: 10, fontSize: 9, color: '#7B9CAF' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, background: '#FE7916', borderRadius: 2, opacity: 0.7 }} /> Actual</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, background: '#7B9CAF', borderRadius: 2, opacity: 0.3 }} /> Target</span>
+                </div>
+              </div>
+              {(() => {
+                const stages = [
+                  { name: 'Pipeline', actual: totalPipeline, target: 2200000 },
+                  { name: 'Best Case', actual: totalBestCase, target: 600000 },
+                  { name: 'Commit', actual: totalCommit, target: 700000 },
+                  { name: 'Closed Won', actual: totalClosed, target: totalQuota },
+                ]
+                const maxVal = Math.max(...stages.map(s => Math.max(s.actual, s.target)))
+                return (
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: 100 }}>
+                    {stages.map((s, i) => {
+                      const actualH = (s.actual / maxVal) * 85
+                      const targetH = (s.target / maxVal) * 85
+                      const pct = Math.round((s.actual / s.target) * 100)
+                      return (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: pct >= 100 ? '#16a34a' : pct >= 70 ? '#FE7916' : '#dc2626' }}>{pct}%</div>
+                          <div style={{ width: '100%', height: 70, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 3, position: 'relative' }}>
+                            <div style={{ width: '35%', height: `${targetH}%`, background: '#7B9CAF', opacity: 0.12, borderRadius: '3px 3px 0 0' }} />
+                            <div style={{ width: '35%', height: `${actualH}%`, background: '#FE7916', opacity: 0.8, borderRadius: '3px 3px 0 0' }} />
+                            <div style={{ position: 'absolute', bottom: `${targetH}%`, left: '10%', right: '10%', height: 1.5, background: '#7B9CAF', opacity: 0.5, borderRadius: 1 }} />
+                          </div>
+                          <div style={{ fontSize: 8, color: '#7B9CAF' }}>{s.name}</div>
+                          <div style={{ fontSize: 9, fontWeight: 600, color: '#475569' }}>{fmt(s.actual)}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </div>
+
             <div className="tabs" style={{ marginBottom: 12 }}>
               <button className={tableTab === 'rollup' ? 'active' : ''} onClick={() => setTableTab('rollup')}>Team Rollup</button>
               <button className={tableTab === 'deals' ? 'active' : ''} onClick={() => setTableTab('deals')}>Deal Inspection</button>
