@@ -142,273 +142,164 @@ export default function ScenarioPlanner() {
     }, 400)
   }
 
+  // Pre-run scenarios
+  const preRunScenarios = [
+    { name: 'Base Case', bear: 420000, fair: 580000, bull: 720000, winRate: 'Current', slippage: 12, recommended: false },
+    { name: 'Optimistic', bear: 560000, fair: 740000, bull: 920000, winRate: '+10%', slippage: 5, recommended: true },
+    { name: 'Conservative', bear: 310000, fair: 440000, bull: 560000, winRate: '-10%', slippage: 25, recommended: false },
+    { name: 'High Slippage', bear: 280000, fair: 390000, bull: 510000, winRate: 'Current', slippage: 30, recommended: false },
+  ]
+  const quota = 1850000
+  const [showManualModal, setShowManualModal] = useState(false)
+
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* Copilot */}
       {copilotOpen && (
-        <div style={{ width: 280, borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff', flexShrink: 0 }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Simulation Copilot</div>
-            <button onClick={() => setCopilotOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>×</button>
+        <div style={{ width: 280, flexShrink: 0 }}>
+          <Copilot title="Simulation Copilot" subtitle="Run & compare scenarios" messages={chatMessages} starters={['Run a simulation', 'Create optimistic scenario', 'What if win rate drops?', 'Compare all scenarios']} input={chatInput} setInput={setChatInput} onSend={handleCopilotChat} onClose={() => setCopilotOpen(false)} />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        <div className="topbar" style={{ position: 'static' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {!copilotOpen && <button className="btn btn-sm" onClick={() => setCopilotOpen(true)}>AI</button>}
+            <h2 style={{ fontSize: 15 }}>Scenario Planner</h2>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {chatMessages.map((m, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{ maxWidth: '90%', padding: '8px 12px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px', background: m.role === 'user' ? '#FE7916' : '#f1f5f9', color: m.role === 'user' ? '#fff' : '#1e293b', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+          <div className="actions">
+            <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}><option>Q3 2026</option><option>Q4 2026</option></select>
+            <button className="btn btn-primary" onClick={() => setShowManualModal(true)}>Run Manual Analysis</button>
+          </div>
+        </div>
+
+        <div style={{ padding: 24 }}>
+          {/* Recommended Badge */}
+          <div style={{ padding: '12px 16px', background: '#fff8f3', border: '1px solid #ffc89e', borderRadius: 8, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FE7916' }} />
+            <span style={{ fontSize: 12, color: '#475569' }}><strong style={{ color: '#FE7916' }}>Recommended: Optimistic</strong> — Based on current pipeline velocity and engagement trends, increasing win rates by 10% and reducing slippage to 5% gives the highest probability of exceeding quota.</span>
+          </div>
+
+          {/* Scenario Cards — 4 pre-run */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+            {preRunScenarios.map((sc, i) => (
+              <div key={i} className="card" style={{ padding: '16px', border: sc.recommended ? '2px solid #FE7916' : '1px solid #e5e7eb', position: 'relative' }}>
+                {sc.recommended && <div style={{ position: 'absolute', top: -8, left: 12, background: '#FE7916', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>RECOMMENDED</div>}
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>{sc.name}</div>
+                <div style={{ fontSize: 9, color: '#7B9CAF', marginBottom: 8 }}>Win Rate: {sc.winRate} • Slippage: {sc.slippage}%</div>
+                {/* Mini bar chart */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 50, marginBottom: 8 }}>
+                  {[{ v: sc.bear, c: '#dc2626', l: 'Bear' }, { v: sc.fair, c: '#FE7916', l: 'Fair' }, { v: sc.bull, c: '#16a34a', l: 'Bull' }].map((b, bi) => (
+                    <div key={bi} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ width: '100%', height: `${(b.v / 920000) * 45}px`, background: b.c, opacity: 0.7, borderRadius: '3px 3px 0 0' }} />
+                      <div style={{ fontSize: 8, color: '#7B9CAF', marginTop: 2 }}>{b.l}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>{fmt(sc.fair)}</div>
+                  <div style={{ fontSize: 9, color: '#7B9CAF' }}>Most Likely</div>
+                </div>
               </div>
             ))}
-            <div ref={chatEndRef} />
           </div>
-          {chatMessages.length <= 1 && (
-            <div style={{ padding: '0 12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {['Run a simulation', 'Create optimistic scenario', 'Create conservative scenario', 'What if win rate drops 10%?'].map((s, i) => (
-                <button key={i} onClick={() => setChatInput(s)} style={{ textAlign: 'left', padding: '6px 10px', background: '#f8f9fb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#475569', cursor: 'pointer' }}>{s}</button>
+
+          {/* Comparison Chart — all scenarios overlaid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div className="card">
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>Range Comparison</div>
+              {preRunScenarios.map((sc, i) => (
+                <div key={i} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 600 }}>{sc.name}</span>
+                    <span style={{ color: '#7B9CAF' }}>{fmt(sc.bear)} — {fmt(sc.bull)}</span>
+                  </div>
+                  <div style={{ height: 10, background: '#f1f5f9', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
+                    {/* Range band */}
+                    <div style={{ position: 'absolute', left: `${(sc.bear / quota) * 100}%`, width: `${((sc.bull - sc.bear) / quota) * 100}%`, top: 0, bottom: 0, background: sc.recommended ? '#FE7916' : '#7B9CAF', opacity: 0.3, borderRadius: 5 }} />
+                    {/* Fair value marker */}
+                    <div style={{ position: 'absolute', left: `${(sc.fair / quota) * 100}%`, top: 0, bottom: 0, width: 3, background: sc.recommended ? '#FE7916' : '#475569', borderRadius: 2 }} />
+                  </div>
+                </div>
+              ))}
+              {/* Quota line label */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4, fontSize: 9, color: '#7B9CAF' }}>Quota: {fmt(quota)} →</div>
+            </div>
+
+            {/* Sensitivity Summary */}
+            <div className="card">
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>Key Drivers</div>
+              {[
+                { name: 'Proposal Win Rate', impact: 82000, direction: 'up' },
+                { name: 'Deal Slippage', impact: 65000, direction: 'down' },
+                { name: 'Negotiation Win Rate', impact: 58000, direction: 'up' },
+                { name: 'Net New Pipeline', impact: 24000, direction: 'up' },
+              ].map((d, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{ width: 110, fontSize: 10, fontWeight: 500 }}>{d.name}</span>
+                  <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(d.impact / 82000) * 100}%`, background: d.direction === 'up' ? '#16a34a' : '#dc2626', borderRadius: 3, opacity: 0.7 }} />
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: d.direction === 'up' ? '#16a34a' : '#dc2626' }}>±{fmt(d.impact)}</span>
+                </div>
               ))}
             </div>
-          )}
-          <div style={{ padding: '8px 12px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6 }}>
-            <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCopilotChat()} placeholder="Ask copilot..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 11 }} />
-            <button className="btn btn-primary" onClick={handleCopilotChat} style={{ padding: '8px 10px', fontSize: 11 }}>→</button>
+          </div>
+
+          {/* AI Recommendation */}
+          <div className="card" style={{ marginTop: 20, padding: '14px 18px', borderLeft: '3px solid #FE7916' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>AI Analysis Summary</div>
+            <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.7 }}>
+              The <strong>Optimistic</strong> scenario is most aligned with current signals. Pipeline velocity has increased 18% this month, and 3 commit deals show strong buyer engagement. However, monitor the 4 single-threaded deals — if stakeholder engagement doesn't improve, the Conservative scenario becomes more likely. Recommended action: focus on multi-threading top 4 deals to lock in the optimistic outcome.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Manual Analysis Modal */}
+      {showManualModal && (
+        <div className="modal-backdrop" onClick={() => setShowManualModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 640 }}>
+            <h3>Run Custom Simulation</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 10 }}>Win Rates by Stage</div>
+                {active.stages.map((stage, si) => (
+                  <div className="slider-group" key={stage.id}>
+                    <label><span>{stage.name}</span><span style={{ fontWeight: 700 }}>{stage.winRate}%</span></label>
+                    <input type="range" min="0" max="100" value={stage.winRate} onChange={e => updateStage(si, 'winRate', e.target.value)} />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 10 }}>Variables</div>
+                {active.stages.map((stage, si) => (
+                  <div className="form-group" key={stage.id} style={{ marginBottom: 8 }}>
+                    <label style={{ fontSize: 10 }}>{stage.name} Pipeline ($)</label>
+                    <input type="number" value={stage.pipeline} onChange={e => updateStage(si, 'pipeline', e.target.value)} />
+                  </div>
+                ))}
+                <div className="slider-group"><label><span>Slippage</span><span style={{ fontWeight: 700 }}>{active.slippage}%</span></label><input type="range" min="0" max="50" value={active.slippage} onChange={e => updateField('slippage', e.target.value)} /></div>
+                <div className="slider-group"><label><span>Volatility</span><span style={{ fontWeight: 700 }}>{active.volatility}%</span></label><input type="range" min="5" max="50" value={active.volatility} onChange={e => updateField('volatility', e.target.value)} /></div>
+                <div className="form-group"><label>Net New Pipeline ($)</label><input type="number" value={active.netNew} onChange={e => updateField('netNew', e.target.value)} /></div>
+              </div>
+            </div>
+            {/* Results preview */}
+            {results.length > 0 && (() => { const r = results.find(x => x.id === active.id); return r ? (
+              <div style={{ marginTop: 16, padding: 14, background: '#f8f9fb', borderRadius: 8, display: 'flex', gap: 20, justifyContent: 'center' }}>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#dc2626', fontWeight: 700 }}>BEAR</div><div style={{ fontSize: 16, fontWeight: 800, color: '#dc2626' }}>{fmt(r.bear)}</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#FE7916', fontWeight: 700 }}>FAIR</div><div style={{ fontSize: 16, fontWeight: 800, color: '#FE7916' }}>{fmt(r.fair)}</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 9, color: '#16a34a', fontWeight: 700 }}>BULL</div><div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>{fmt(r.bull)}</div></div>
+              </div>
+            ) : null })()}
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowManualModal(false)}>Close</button>
+              <button className="btn btn-primary" onClick={() => { handleRun(); }}>Run Simulation</button>
+            </div>
           </div>
         </div>
       )}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-      <div>
-      <div className="topbar" style={{ position: 'static' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {!copilotOpen && <button className="btn btn-sm" onClick={() => setCopilotOpen(true)}>AI</button>}
-          <h2 style={{ fontSize: 15 }}>Scenario Planner</h2>
-        </div>
-        <div className="actions">
-          <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }}>
-            <option>Q3 2026</option><option>Q4 2026</option><option>Q1 2027</option>
-          </select>
-          <button className="btn btn-primary" onClick={handleRun} disabled={isRunning}>
-            {isRunning ? 'Running 10,000 simulations...' : 'Run Simulation'}
-          </button>
-        </div>
-      </div>
-
-      <div style={{ padding: 24 }}>
-        {/* Scenario tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-          {scenarios.map((sc, idx) => (
-            <div key={sc.id} style={{ display: 'flex', alignItems: 'center' }}>
-              <button className={`btn ${activeIdx === idx ? 'btn-primary' : ''}`} onClick={() => setActiveIdx(idx)}>{sc.name}</button>
-              {scenarios.length > 1 && <button className="btn-ghost" onClick={() => removeScenario(idx)} style={{ padding: '4px 8px', fontSize: 12, marginLeft: -4 }}>×</button>}
-            </div>
-          ))}
-          <button className="btn" onClick={addScenario}>+ New</button>
-          <button className="btn" onClick={duplicateScenario}>Duplicate</button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 24 }}>
-          {/* LEFT: Inputs */}
-          <div>
-            <div className="card">
-              <div className="card-header"><h3>Scenario Configuration</h3></div>
-              <div className="form-group">
-                <label>Scenario Name</label>
-                <input value={active.name} onChange={e => updateField('name', e.target.value)} />
-              </div>
-
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', margin: '16px 0 10px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Win Rates by Stage</div>
-              {active.stages.map((stage, si) => (
-                <div className="slider-group" key={stage.id}>
-                  <label><span>{stage.name}</span><span style={{ fontWeight: 700 }}>{stage.winRate}%</span></label>
-                  <input type="range" min="0" max="100" value={stage.winRate} onChange={e => updateStage(si, 'winRate', e.target.value)} />
-                </div>
-              ))}
-
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', margin: '16px 0 10px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Pipeline by Stage ($)</div>
-              {active.stages.map((stage, si) => (
-                <div className="form-group" key={stage.id} style={{ marginBottom: 8 }}>
-                  <label style={{ fontSize: 11 }}>{stage.name}</label>
-                  <input type="number" value={stage.pipeline} onChange={e => updateStage(si, 'pipeline', e.target.value)} />
-                </div>
-              ))}
-
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', margin: '16px 0 10px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Variables</div>
-              <div className="slider-group">
-                <label><span>Deal Slippage</span><span style={{ fontWeight: 700, color: '#dc2626' }}>{active.slippage}%</span></label>
-                <input type="range" min="0" max="50" value={active.slippage} onChange={e => updateField('slippage', e.target.value)} />
-              </div>
-              <div className="slider-group">
-                <label><span>Volatility</span><span style={{ fontWeight: 700 }}>{active.volatility}%</span></label>
-                <input type="range" min="5" max="50" value={active.volatility} onChange={e => updateField('volatility', e.target.value)} />
-              </div>
-              <div className="slider-group">
-                <label><span>Team Ramp Factor</span><span style={{ fontWeight: 700 }}>{active.rampFactor}%</span></label>
-                <input type="range" min="50" max="100" value={active.rampFactor} onChange={e => updateField('rampFactor', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label>Net New Pipeline Expected ($)</label>
-                <input type="number" value={active.netNew} onChange={e => updateField('netNew', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label>Active Deal Count</label>
-                <input type="number" value={active.dealCount} onChange={e => updateField('dealCount', e.target.value)} />
-              </div>
-
-              <button className="btn btn-primary" onClick={handleRun} disabled={isRunning} style={{ width: '100%', marginTop: 12 }}>
-                {isRunning ? 'Simulating...' : 'Run Simulation'}
-              </button>
-            </div>
-          </div>
-
-          {/* RIGHT: Results */}
-          <div>
-            {!activeResult && !isRunning && (
-              <div className="card" style={{ textAlign: 'center', padding: '60px 40px' }}>
-                <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>◎</div>
-                <h3 style={{ color: '#64748b', marginBottom: 8 }}>No Simulation Results Yet</h3>
-                <p style={{ fontSize: 13, color: '#94a3b8', maxWidth: 400, margin: '0 auto' }}>
-                  Configure your scenario inputs on the left — adjust win rates, pipeline amounts, slippage, and other variables. Then click "Run Simulation" to see projected outcomes based on 10,000+ Monte Carlo simulations.
-                </p>
-              </div>
-            )}
-
-            {isRunning && (
-              <div className="card" style={{ textAlign: 'center', padding: '60px 40px' }}>
-                <div style={{ fontSize: 14, color: '#FE7916', fontWeight: 600, marginBottom: 8 }}>Running 10,000 simulations...</div>
-                <div style={{ width: 200, height: 4, background: '#f1f5f9', borderRadius: 2, margin: '0 auto', overflow: 'hidden' }}>
-                  <div style={{ width: '70%', height: '100%', background: '#FE7916', borderRadius: 2, animation: 'none' }} />
-                </div>
-                <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 12 }}>Analyzing historical data, computing win probability distributions, and modeling variance...</p>
-              </div>
-            )}
-
-            {activeResult && !isRunning && (
-              <>
-                {/* Outcome Cards */}
-                <div className="card">
-                  <div className="card-header"><h3>Projected Outcomes</h3><span style={{ fontSize: 11, color: '#94a3b8' }}>Based on 10,000 simulations</span></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
-                    <div style={{ background: '#fef2f2', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#dc2626', letterSpacing: 1, marginBottom: 4 }}>BEAR CASE</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: '#dc2626' }}>{fmt(activeResult.bear)}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>75%+ of simulations above this</div>
-                    </div>
-                    <div style={{ background: '#fff5ed', borderRadius: 12, padding: 20, textAlign: 'center', border: '2px solid #ffc89e' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#FE7916', letterSpacing: 1, marginBottom: 4 }}>MOST LIKELY</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: '#FE7916' }}>{fmt(activeResult.fair)}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Most frequent outcome</div>
-                    </div>
-                    <div style={{ background: '#f0fdf4', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#16a34a', letterSpacing: 1, marginBottom: 4 }}>BULL CASE</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: '#16a34a' }}>{fmt(activeResult.bull)}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Achieved only 25% of time</div>
-                    </div>
-                  </div>
-
-                  {/* Range vs quota */}
-                  <div style={{ marginBottom: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94a3b8', marginBottom: 6 }}>
-                      <span>{fmt(activeResult.bear)}</span>
-                      <span>Quota: {fmt(quota)}</span>
-                      <span>{fmt(activeResult.bull)}</span>
-                    </div>
-                    <div style={{ position: 'relative', height: 28, background: '#f1f5f9', borderRadius: 6 }}>
-                      <div style={{ position: 'absolute', left: `${Math.max(0, (activeResult.bear / quota) * 70)}%`, width: `${Math.min(100, ((activeResult.bull - activeResult.bear) / quota) * 70)}%`, top: 4, bottom: 4, background: 'linear-gradient(90deg, #fecaca, #ffc89e, #bbf7d0)', borderRadius: 4, opacity: 0.7 }} />
-                      <div style={{ position: 'absolute', left: `${(activeResult.fair / quota) * 70}%`, top: 0, bottom: 0, width: 3, background: '#FE7916', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 2, background: '#1e293b' }} />
-                    </div>
-                    <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: activeResult.fair >= quota ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
-                      {activeResult.fair >= quota ? `+${fmt(activeResult.fair - quota)} above quota` : `${fmt(quota - activeResult.fair)} gap to quota`}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calculation Breakdown */}
-                <div className="card">
-                  <div className="card-header"><h3>Simulation Breakdown</h3></div>
-                  <table>
-                    <tbody>
-                      <tr><td style={{ color: '#64748b' }}>Total Pipeline (all stages)</td><td style={{ fontWeight: 700, textAlign: 'right' }}>{fmt(activeResult.totalPipeline)}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>Weighted Pipeline (probability-adjusted)</td><td style={{ fontWeight: 700, textAlign: 'right' }}>{fmt(activeResult.weightedPipeline)}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>+ Net New Pipeline (weighted at 12%)</td><td style={{ fontWeight: 700, textAlign: 'right', color: '#16a34a' }}>+{fmt(activeResult.netNewWeighted)}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>− Slippage ({active.slippage}% of deals push out)</td><td style={{ fontWeight: 700, textAlign: 'right', color: '#dc2626' }}>−{fmt(Math.round(activeResult.weightedPipeline * active.slippage / 100))}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>× Team Ramp Factor ({active.rampFactor}%)</td><td style={{ fontWeight: 700, textAlign: 'right' }}>{fmt(activeResult.afterRamp)}</td></tr>
-                      <tr style={{ borderTop: '2px solid #e5e7eb' }}><td style={{ fontWeight: 700 }}>Fair Value (Most Likely Outcome)</td><td style={{ fontWeight: 800, textAlign: 'right', fontSize: 16, color: '#FE7916' }}>{fmt(activeResult.fair)}</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Per-stage breakdown */}
-                <div className="card">
-                  <div className="card-header"><h3>Stage Contribution</h3></div>
-                  {activeResult.inputs.stages.map((s, i) => {
-                    const contribution = s.pipeline * (s.winRate / 100)
-                    const pct = activeResult.weightedPipeline > 0 ? (contribution / activeResult.weightedPipeline) * 100 : 0
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                        <span style={{ width: 100, fontSize: 12, fontWeight: 500 }}>{s.name}</span>
-                        <span style={{ width: 70, fontSize: 11, color: '#64748b' }}>{fmt(s.pipeline)}</span>
-                        <span style={{ width: 40, fontSize: 11, color: '#64748b' }}>×{s.winRate}%</span>
-                        <div style={{ flex: 1, height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: '#FE7916', borderRadius: 4 }} />
-                        </div>
-                        <span style={{ width: 70, fontSize: 12, fontWeight: 700, textAlign: 'right' }}>{fmt(Math.round(contribution))}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Multi-scenario comparison */}
-                {results.length > 1 && (
-                  <div className="card">
-                    <div className="card-header"><h3>Scenario Comparison</h3></div>
-                    <table>
-                      <thead><tr><th>Scenario</th><th>Bear</th><th>Most Likely</th><th>Bull</th><th>Slippage</th><th>vs Quota</th></tr></thead>
-                      <tbody>
-                        {results.map((r, i) => (
-                          <tr key={r.id} style={r.id === active.id ? { background: '#fff5ed' } : {}}>
-                            <td><strong>{r.name}</strong></td>
-                            <td style={{ color: '#dc2626' }}>{fmt(r.bear)}</td>
-                            <td style={{ color: '#FE7916', fontWeight: 700 }}>{fmt(r.fair)}</td>
-                            <td style={{ color: '#16a34a' }}>{fmt(r.bull)}</td>
-                            <td>{r.inputs.slippage}%</td>
-                            <td style={{ color: r.fair >= quota ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
-                              {r.fair >= quota ? `+${fmt(r.fair - quota)}` : `-${fmt(quota - r.fair)}`}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Sensitivity */}
-                <div className="card">
-                  <div className="card-header"><h3>Sensitivity Analysis</h3><span className="badge badge-purple">±10% change impact</span></div>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>Which variables have the largest impact on your forecast?</p>
-                  {computeSensitivity().map((v, i) => {
-                    const maxImpact = Math.max(...computeSensitivity().map(x => Math.max(x.up, x.down)), 1)
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                        <span style={{ width: 140, fontSize: 12, fontWeight: 500 }}>{v.name}</span>
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', height: 16 }}>
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                            <div style={{ width: `${(v.down / maxImpact) * 100}%`, height: 8, background: '#fecaca', borderRadius: 4 }} />
-                          </div>
-                          <div style={{ width: 1, height: 14, background: '#d1d5db', margin: '0 3px' }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ width: `${(v.up / maxImpact) * 100}%`, height: 8, background: '#bbf7d0', borderRadius: 4 }} />
-                          </div>
-                        </div>
-                        <span style={{ width: 55, fontSize: 11, textAlign: 'right', color: '#16a34a' }}>+{fmt(v.up)}</span>
-                        <span style={{ width: 55, fontSize: 11, textAlign: 'right', color: '#dc2626' }}>-{fmt(v.down)}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
     </div>
   )
 }
